@@ -34,13 +34,29 @@ struct				s_sphere
 struct				s_plane
 {
 	t_vec3			n;
-	t_num			d;
+	t_vec3			d;
 };
+
+struct		s_cylinder
+{
+	t_vec3			head;
+	t_vec3			tail;
+	t_num			radius;
+};
+
+struct		s_cone
+{
+	t_vec3			head;
+	t_vec3			tail;
+	t_num			radius;
+}					t_cone;
 
 union				u_obj_content
 {
 	struct s_sphere		sphere;
 	struct s_plane		plane;
+	struct s_cylinder	cylinder;
+	struct s_cone		cone;
 };
 
 struct				s_obj

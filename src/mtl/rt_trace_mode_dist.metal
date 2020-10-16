@@ -25,7 +25,7 @@ t_color			rt_trace_mode_dist(t_scene *scene, t_ray ray)
 	return ((t_color) {0, 0, 0, ALPHA_MAX});
 }
 
-kernal	void 	trace_mode_dis(	device	t_scene* 				scene [[buffer(0)]],
+kernal	void 	trace_mode_dis(	device struct		s_scn		*scene	[[buffer(0)]],
 								texture2d<float,access::write>	pixel [[texture(1)]],
 								uint2                     		gid [[thread_position_in_grid]])
 {

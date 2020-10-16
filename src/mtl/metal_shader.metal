@@ -1,16 +1,17 @@
-# **************************************************************************** #
-#                                                                              #
-#                                                         :::      ::::::::    #
-#    metal_shader.metal                                 :+:      :+:    :+:    #
-#                                                     +:+ +:+         +:+      #
-#    By: wpoudre <marvin@42.fr>                     +#+  +:+       +#+         #
-#                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2020/09/11 18:30:35 by wpoudre           #+#    #+#              #
-#    Updated: 2020/09/11 18:30:37 by wpoudre          ###   ########.fr        #
-#                                                                              #
-# **************************************************************************** #
+/* **************************************************************************** */
+/*                                                                              */
+/*                                                         :::      ::::::::    */
+/*    metal_shader.metal                                 :+:      :+:    :+:    */
+/*                                                     +:+ +:+         +:+      */
+/*    By: wpoudre <marvin@42.fr>                     +#+  +:+       +#+         */
+/*                                                 +#+#+#+#+#+   +#+            */
+/*    Created: 2020/09/11 18:30:35 by wpoudre           #+#    #+#              */
+/*    Updated: 2020/09/11 18:30:37 by wpoudre          ###   ########.fr        */
+/*                                                                              */
+/* **************************************************************************** */
 
-#include "metal_shader.h"
+#include <metal_stdlib>
+using namespace metal;
 
 bool		vec_point_is_behind(float3 vec_from_zero, float3 point)
 {
@@ -22,7 +23,7 @@ bool		vec_point_is_behind(float3 vec_from_zero, float3 point)
 	return (false);
 }
 
-bool		ray_point_is_behind(t_ray ray, float3 point)
+bool		ray_point_is_behind(Ray ray, float3 point)
 {
 	return (vec_point_is_behind(ray.dir, (point - ray.pos)));
 }
@@ -56,9 +57,9 @@ float3		vec_to_srgb(float3 v)
 	return (v);
 }
 
-t_color 	col_from_vec(float3 vector)
+float4 	col_from_vec(float3 vector)
 {
-	t_color res;
+	float4 res;
 
 	res[0] = vector.x;
 	res[1] = vector.y;
@@ -67,28 +68,28 @@ t_color 	col_from_vec(float3 vector)
 	return (res);
 }
 
-t_color		col_from_normal(float3 vector)
+float4		col_from_normal(float3 vector)
 {
-	unsigned char	res[4];
+	float4	res;
 
 	vector = normalize(vector);
-	res[0] = (unsigned char)(vector.x + 1) * COLOR_MAX / 2;
-	res[1] = (unsigned char)(vector.y + 1) * COLOR_MAX / 2;
-	res[2] = (unsigned char)(vector.z + 1) * COLOR_MAX / 2;
-	res[3] = ALPHA_MAX;
-	return ((t_color){res[0], res[1], res[2], res[3]});
+	res.x = (unsigned char)(vector.x + 1) * COLOR_MAX / 2;
+	res.y = (unsigned char)(vector.y + 1) * COLOR_MAX / 2;
+	res.z = (unsigned char)(vector.z + 1) * COLOR_MAX / 2;
+	res.w = ALPHA_MAX;
+	return (res);
 
 }
 
-t_color		col_from_vec_norm(float3 vector)
+float4		col_from_vec_norm(float3 vector)
 {
-	unsigned char	res[4];
+	float4	res;
 
-	res[0] = (unsigned char)(num_clamp(vector.x, 0, 1) * COLOR_MAX);
-	res[1] = (unsigned char)(num_clamp(vector.y, 0, 1) * COLOR_MAX);
-	res[2] = (unsigned char)(num_clamp(vector.z, 0, 1) * COLOR_MAX);
-	res[3] = ALPHA_MAX;
-	return ((t_color){res[0], res[1], res[2], res[3]});
+	res.x = (unsigned char)(num_clamp(vector.x, 0, 1) * COLOR_MAX);
+	res.y = (unsigned char)(num_clamp(vector.y, 0, 1) * COLOR_MAX);
+	res.z = (unsigned char)(num_clamp(vector.z, 0, 1) * COLOR_MAX);
+	res.w = ALPHA_MAX;
+	return (res);
 }
 
 float3	fresnel_schlick(float3 f0, float cos_theta)
@@ -102,30 +103,44 @@ float3	fresnel_schlick(float3 f0, float cos_theta)
 	return (res);
 }
 
-float					trace_dot_plane(t_ray ray, t_obj *fig)
+float					trace_dot_plane(Ray ray, device t_obj *fig)
 {
-	t_plane				*pl;
+	struct	s_plane		pl[1];
 	float				d_dot_v;
 
-	if (fig == NULL)
+	if (!fig)
 		return (INFINITY);
-	pl = &(fig->figs.plane);
+	pl[0] = fig->obj.plane;
 	ray.dir = normalize(ray.dir);
-	d_dot_v = dot(ray.dir, pl->normal);
-	return (-1 * dot((ray.pos - (pl->normal * (-1.0 * pl->d))), pl->normal) / d_dot_v);
+	d_dot_v = dot(ray.dir, (float3)pl->normal);
+	return (-1 * dot((ray.pos - ((float3)pl->normal * (-1.0 * pl->d))), (float3)pl->normal) / d_dot_v);
 }
 
-float					trace_dot_cap(t_ray ray, t_ray plane_ray)
+float					trace_dot_pl(Ray ray, struct s_obj fig)
+{
+	struct	s_plane		pl[1];
+	float				d_dot_v;
+
+	pl[0] = fig.obj.plane;
+	ray.dir = normalize(ray.dir);
+	d_dot_v = dot(ray.dir, (float3)pl->normal);
+	return (-1 * dot((ray.pos - ((float3)pl[0].normal * (-1.0 * pl->d))), (float3)pl[0].normal) / d_dot_v);
+}
+
+
+float					trace_dot_cap(Ray ray, Ray plane_ray)
 {
 	t_obj		fig;
+	float		buf;
 
 	fig.type = PLANE;
 	fig.obj.plane.normal = plane_ray.dir;
 	fig.obj.plane.d = -(dot(plane_ray.dir, plane_ray.pos));
-	return (trace_dot_plane(ray, &fig));
+	buf = trace_dot_pl(ray, &fig);
+	return (buf);
 }
 
-static float3			sphere_intersect_points(t_ray ray, t_sphere sphere)
+static float3			sphere_intersect_points(Ray ray, struct s_sphere sphere)
 {
 	float		a;
 	float		b;
@@ -136,19 +151,19 @@ static float3			sphere_intersect_points(t_ray ray, t_sphere sphere)
 	a_min_c = (ray.pos - sphere.center);
 	a = dot(ray.dir, ray.dir);
 	b = 2 * dot(ray.dir, a_min_c);
-	c = dot(a_min_c, a_min_c) - (sphere.radius * sphere.radius);
+	c = dot(a_min_c, a_min_c) - (sphere.r * sphere.r);
 	d = (b * b) - 4 * a * c;
 	if (d < 0)
-		return ((float3){INFINITY, INFINITY, INFINITY});
-	return ((float3){((-b - sqrt(d)) / (2 * a), (-b + sqrt(d)) / (2 * a), 0)});
+		return (float3(INFINITY));
+	return (float3((-b - sqrt(d)) / (2 * a), (-b + sqrt(d)) / (2 * a), 0));
 }
 
-float					trace_dot_sphere(t_ray ray, t_obj *fig)
+float					trace_dot_sphere(Ray ray, device t_obj *fig)
 {
 	float			minimal;
 	float3			points;
 
-	if (fig == NULL)
+	if (!fig)
 		return (INFINITY);
 	points = sphere_intersect_points(ray, fig->obj.sphere);
 	minimal = INFINITY;
@@ -161,7 +176,7 @@ float					trace_dot_sphere(t_ray ray, t_obj *fig)
 
 ///cone trace------------------------------------------------------
 
-float3					cone_intersect(t_ray ray, t_cone cone, float3 v)
+float3					cone_intersect(Ray ray, struct s_cone cone, float3 v)
 {
 	float3		x;
 	float		a;
@@ -169,7 +184,7 @@ float3					cone_intersect(t_ray ray, t_cone cone, float3 v)
 	float		c;
 	float		d;
 
-	d = cone.radius / length(cone.tail - cone.head);
+	d = cone.r / length(cone.tail - cone.head);
 	x = ray.pos - cone.tail;
 	a = dot(ray.dir, ray.dir)
 		- (1 + (d * d)) * sqrt(dot(ray.dir, v));
@@ -182,7 +197,7 @@ float3					cone_intersect(t_ray ray, t_cone cone, float3 v)
 	return ((float3){(-b - d) / (2 * a), (-b + d) / (2 * a), 0});
 }
 
-static float3			cone_capped(t_ray ray_in, t_cone cone)
+static float3			cone_capped(Ray ray_in, struct s_cone cone)
 {
 	float3				points;
 	float3				v;
@@ -193,7 +208,7 @@ static float3			cone_capped(t_ray ray_in, t_cone cone)
 	v = normalize(cone.head - cone.tail);
 	ray_in.dir = normalize(ray_in.dir);
 	points = cone_intersect(ray_in, cone, v);
-	x_dot_v = dot(ray_in.pos - cone.pos, v);
+	x_dot_v = dot(ray_in.pos - ((float3)cone.head - (float3)cone.tail), v);
 	m.x = dot(ray_in.dir, v * points.x) + x_dot_v;
 	m.y = dot(ray_in.dir, v * points.y) + x_dot_v;
 	clamped.x = num_clamp(m.x, 0, length(cone.tail - cone.head));
@@ -201,18 +216,18 @@ static float3			cone_capped(t_ray ray_in, t_cone cone)
 	if (clamped.x != m.x && clamped.y != m.y)
 		return ((float3){INFINITY, INFINITY, INFINITY});
 	if (clamped.x != m.x)
-		points.x = trace_dot_cap(ray_in, (t_ray){cone.head, v});
+		points.x = trace_dot_cap(ray_in, (Ray){cone.head, v});
 	if (clamped.y != m.y)
-		points.y = trace_dot_cap(ray_in, (t_ray){cone.head, v});
+		points.y = trace_dot_cap(ray_in, (Ray){cone.head, v});
 	return (points);
 }
 
-float					trace_dot_cone(t_ray ray, t_obj *fig)
+float					trace_dot_cone(Ray ray, device t_obj *fig)
 {
 	float 				minimal;
 	float3 				points;
 
-	if (fig == NULL)
+	if (!fig)
 		return (INFINITY);
 	points = cone_capped(ray, fig->obj.cone);
 	minimal = INFINITY;
@@ -225,7 +240,7 @@ float					trace_dot_cone(t_ray ray, t_obj *fig)
 
 ///cylinder trace-----------------------------------------------
 
-float3					cylinder_intersect(t_ray ray, t_cylinder cyl, float3 v)
+float3					cylinder_intersect(Ray ray, struct s_cylinder cyl, float3 v)
 {
 	float3				x;
 	float				a;
@@ -233,7 +248,7 @@ float3					cylinder_intersect(t_ray ray, t_cylinder cyl, float3 v)
 	float				c;
 	float				d;
 
-	x = ray.pos - cyl.tail;
+	x = ray.pos - (float3)cyl.tail;
 	a = dot(ray.dir, ray.dir) - sqrt(dot(ray.dir, v));
 	b = (dot(ray.dir, x) - dot(ray.dir, v) * dot(x, v)) * 2;
 	c = dot(x, x) - sqrt(dot(x, v)) - sqrt(cyl.r);
@@ -244,7 +259,7 @@ float3					cylinder_intersect(t_ray ray, t_cylinder cyl, float3 v)
 	return ((float3){(-b - d) / (2 * a), (-b + d) / (2 * a), 0});
 }
 
-static float3			cylinder_capped(t_ray ray, t_cylinder cyl)
+static float3			cylinder_capped(Ray ray, struct s_cylinder cyl)
 {
 	float				maxm;
 	float3				points;
@@ -252,7 +267,7 @@ static float3			cylinder_capped(t_ray ray, t_cylinder cyl)
 	float3				m;
 	float				x_dot_v;
 
-	v = normalize(cyl.head - cyl.tail));
+	v = normalize(cyl.head - cyl.tail);
 	points = cylinder_intersect(ray, cyl, v);
 	maxm = length(cyl.head - cyl.tail);
 	x_dot_v = dot((ray.pos - cyl.tail), v);
@@ -263,22 +278,22 @@ static float3			cylinder_capped(t_ray ray, t_cylinder cyl)
 	if ((m.x < 0 && m.y < 0) || (m.x > maxm && m.y > maxm))
 		return ((float3){INFINITY, INFINITY, INFINITY});
 	if (m.x < 0)
-		points.x = trace_dot_cap(ray, (t_ray) {cyl.tail, -(v)});
+		points.x = trace_dot_cap(ray, (Ray) {cyl.tail, -(v)});
 	if (m.y < 0)
-		points.y = trace_dot_cap(ray, (t_ray) {cyl.tail, -(v)});
+		points.y = trace_dot_cap(ray, (Ray) {cyl.tail, -(v)});
 	if (m.x > maxm)
-		points.x = trace_dot_cap(ray, (t_ray){cyl.head, v});
+		points.x = trace_dot_cap(ray, (Ray){cyl.head, v});
 	if (m.y > maxm)
-		points.y = trace_dot_cap(ray, (t_ray){cyl.head, v});
+		points.y = trace_dot_cap(ray, (Ray){cyl.head, v});
 	return (points);
 }
 
-float					trace_dot_cylinder(t_ray ray, t_obj *fig)
+float					trace_dot_cylinder(Ray ray, device t_obj *fig)
 {
 	float				minimal;
 	float3				points;
 
-	if (fig == NULL)
+	if (!fig)
 		return (INFINITY);
 	points = cylinder_capped(ray, fig->obj.cylinder);
 	minimal = INFINITY;
@@ -291,9 +306,9 @@ float					trace_dot_cylinder(t_ray ray, t_obj *fig)
 
 ///figur trace-------------------------------------------------
 
-float					trace_dot_fig(t_ray ray, t_obj *fig)
+float					trace_dot_fig(Ray ray, device t_obj *fig)
 {
-	if (fig == NULL)
+	if (!fig)
 		return (INFINITY);
 	if (fig->type == PLANE)
 		return (trace_dot_plane(ray, fig));
@@ -307,40 +322,38 @@ float					trace_dot_fig(t_ray ray, t_obj *fig)
 		return (INFINITY);
 }
 
-t_obj					*rt_trace_nearest_dist(t_scene *scene, t_ray ray, float *dist)
+void			*rt_trace_nearest_dist(device t_scn *scene, Ray ray, float &dist, t_obj &nearest)
 {
-	t_obj				*nearest;
 	float				tmp_dist;
 	float				res_dist;
-	size_t				i;
+	int 				i;
 
-	if (scene == NULL)
-		return (NULL);
-	nearest = NULL;
+	if (!scene)
+		return ;
 	res_dist = INFINITY;
 	i = 0;
-	while (i < scene->fig_num)
+	while (i < scene->obj_num)
 	{
-		tmp_dist = trace_dot_fig(ray, &(scene->figs[i]));
+		tmp_dist = trace_dot_fig(ray, &(scene->objects[i]));
 		if (tmp_dist < res_dist && tmp_dist > 0)
 		{
 			res_dist = tmp_dist;
-			nearest = &(scene->figs[i]);
+			*nearest = scene->objects[i];
 		}
 		i++;
 	}
-	if (dist != NULL)
+	if (dist)
 		*dist = res_dist;
-	return (nearest);
 }
 
-float		brdf_get_d(float3 n, float3 v, float3 l, t_material *mat)
+/*
+float		brdf_get_d(float3 n, float3 v, float3 l, t_m *mat)
 {
 	float	d;
 	float	roug_sqr;
 	float3	h;
 
-	if (mat == NULL)
+	if (!mat)
 		return (INFINITY);
 	h = normalize(v + l);
 	roug_sqr = sqrt(mat->roughness);
@@ -348,48 +361,49 @@ float		brdf_get_d(float3 n, float3 v, float3 l, t_material *mat)
 	return (d);
 }
 
-float		brdf_get_g(float3 n, float3 v, float3 l, t_material *mat)
+float		brdf_get_g(float3 n, float3 v, float3 l, t_m *mat)
 {
 	float	g;
 	float	roug_sqr;
 
-	if (mat == NULL)
+	if (!mat)
 		return (INFINITY);
 	roug_sqr = sqrt(mat->roughness);
 	g = ggx_partial_geometry(dot(n, v), roug_sqr);
 	g = g * ggx_partial_geometry(dot(n, l), roug_sqr);
 	return (g);
 }
+*/
 
 ///figur norm-------------------------------------------------
 
 ///plane norm-------------------------------------------------
 
-float3				trace_normal_plane(t_ray ray, t_obj *fig)
+float3				trace_normal_plane(Ray ray, device t_obj *fig)
 {
-	if (fig == NULL)
+	if (!fig)
 		return ((float3){INFINITY, INFINITY, INFINITY});
-	if (fig->obj.plane.normal.x * ray.pos.x + fig->obj.plane.normal.y * ray.pos.y
-		+ fig->obj.plane.normal.z * ray.pos.z + fig->obj.plane.d < 0)
+	if ((float)fig->obj.plane.normal.x * ray.pos.x + (float)fig->obj.plane.normal.y * ray.pos.y
+		+ (float)fig->obj.plane.normal.z * ray.pos.z + (float)fig->obj.plane.d < 0)
 		return (-(fig->obj.plane.normal));
 	return (fig->obj.plane.normal);
 }
 
 ///sphere norm------------------------------------------------
 
-float3				trace_normal_sphere(t_ray ray, t_obj *fig)
+float3				trace_normal_sphere(Ray ray, device t_obj *fig)
 {
 	float3				bounce_pos;
 
-	if (fig == NULL)
-		return ((float3){INFINITY, INFINITY, INFINITY});
+	if (!fig)
+		return (float3(INFINITY));
 	bounce_pos = ray.pos + (ray.dir * trace_dot_sphere(ray, fig));
-	return (normalize(bounce_pos - fig->obj.sphere.center));
+	return (normalize(bounce_pos - (float3)fig->obj.sphere.center));
 }
 
 ///cone norm--------------------------------------------------
 
-float3				trace_normal_cone(t_ray ray_in, t_obj *fig)
+float3				trace_normal_cone(Ray ray_in, device t_obj *fig)
 {
 	float3			v;
 	float3			point_p;
@@ -397,27 +411,27 @@ float3				trace_normal_cone(t_ray ray_in, t_obj *fig)
 	float			cg;
 	float			cr;
 
-	if (fig == NULL)
-		return ((float3){INFINITY, INFINITY, INFINITY});
-	v = fig->obj.cone.head - fig->obj.cone.tail;
+	if (!fig)
+		return (float3(INFINITY));
+	v = (float3)fig->obj.cone.head - (float3)fig->obj.cone.tail;
 	ray_in.dir = normalize(ray_in.dir);
 	point_p = ray_in.pos + ray_in.dir * trace_dot_cone(ray_in, fig);
 	cg = length(v);
-	cr = (float)sqrt((float)(sqrt(fig->obj.cone.radius) + sqrt(cg)));
-	ca = normalize(v) * (cg * length(point_p - fig->obj.cone.tail) / cr);
-	return (normalize(point_p - (fig->obj.cone.tail + ca)));
+	cr = (float)sqrt((float)(sqrt(fig->obj.cone.r) + sqrt(cg)));
+	ca = normalize(v) * (cg * length(point_p - (float3)fig->obj.cone.tail) / cr);
+	return (normalize(point_p - ((float3)fig->obj.cone.tail + ca)));
 }
 
 ///cylinder norm-----------------------------------------------
 
-static float3		cylinder_side_nrm(float3 p, float3 c, float3 v, t_num m)
+static float3		cylinder_side_nrm(float3 p, float3 c, float3 v, float m)
 {
 	p = p - c;
 	p = p - v * m;
 	return (p);
 }
 
-static float3		cylinder_m(t_ray ray, float3 v, float3 cyl_pos, float3 points)
+static float3		cylinder_m(Ray ray, float3 v, float3 cyl_pos, float3 points)
 {
 	float			x_dot_v;
 	float3			m;
@@ -428,7 +442,7 @@ static float3		cylinder_m(t_ray ray, float3 v, float3 cyl_pos, float3 points)
 	return (m);
 }
 
-float3				trace_normal_cylinder(t_ray ray, t_obj *fig)
+float3				trace_normal_cylinder(Ray ray, device t_obj *fig)
 {
 	float			maxm;
 	float3			dis;
@@ -436,12 +450,12 @@ float3				trace_normal_cylinder(t_ray ray, t_obj *fig)
 	float3			m;
 	float3			p;
 
-	if (fig == NULL)
-		return ((float3){INFINITY, INFINITY, INFINITY});
-	v = normalize(fig->obj.cylinder.head - fig->obj.cylinder.tail);
+	if (!fig)
+		return (float3(INFINITY));
+	v = normalize((float3)fig->obj.cylinder.head - (float3)fig->obj.cylinder.tail);
 	dis = cylinder_intersect(ray, fig->obj.cylinder, v);
-	maxm = length(fig->figs.cyl.pos - fig->figs.cyl.cap);
-	m = cylinder_m(ray, v, fig->obj.cylinder.tail, dis);
+	maxm = length((float3)fig->obj.cyl.tail - (float3)fig->obj.cyl.head);
+	m = cylinder_m(ray, v, (float3)fig->obj.cylinder.tail, dis);
 	if (dis.x > dis.y)
 	{
 		dis.x = dis.y;
@@ -455,10 +469,10 @@ float3				trace_normal_cylinder(t_ray ray, t_obj *fig)
 	return (cylinder_side_nrm(p, fig->obj.cylinder.tail, v, m.x));
 }
 
-float3		trace_normal_fig(t_ray ray, t_obj *fig)
+float3		trace_normal_fig(Ray ray, device t_obj *fig)
 {
-	if (fig == NULL)
-		return ((float3){INFINITY, INFINITY, INFINITY});
+	if (!fig)
+		return (float3(INFINITY));
 	if (fig->type == PLANE)
 		return (trace_normal_plane(ray, fig));
 	else if (fig->type == SPHERE)
@@ -468,20 +482,48 @@ float3		trace_normal_fig(t_ray ray, t_obj *fig)
 	else if (fig->type == CYLINDER)
 		return (trace_normal_cylinder(ray, fig));
 	else
-		return ((float3){INFINITY, INFINITY, INFINITY});
+		return (float3(INFINITY));
 }
 
-t_ray					project_get_ray_from_coords(t_camera *cam, double x, double y)
+float3 rerp(float val, float3 from, float3 to)
 {
-	t_ray				ray;
-	float3				dot;
-	float3				dot_1;
-	float3				dot_2;
+	return (normalize(from * cos(val) + to * sin(val)));
+}
 
-	dot_1 = cam->dir_right * ((double)cam->size_x * ((double)(x / WIN_WIDTH) - (1.0 / 2.0)));
-	dot_2 = dot_1 + (cam->dir_up * ((double)-1 * cam->size_y * ((double)(y / WIN_HEIGHT) - (1.0 / 2.0))));
-	dot = cam->plane_pos + dot_2;
-	ray.pos = cam->pos;
-	ray.dir = normalize(dot - cam->pos);
-	return (ray);
+float3 rerp2(float2 val, float3 fromX, float3 toY, float3 toZ)
+{
+	return (normalize(rerp(val.x, fromX, toY) + rerp(val.y, fromX, toZ)));
+}
+
+float		map(float x, float2 in, float2 out)
+{
+	return ((x - in.x) * (out.y - out.x) / (in.y - in.x) + out.x);
+}
+
+float2		map2(float2 val, float4 in, float4 out)
+{
+	return (float2(map(val.x, in.xy, out.xy), map(val.y, in.zw, out.zw)));
+}
+
+float2		angle2_to_radians(float2 degrees)
+{
+	return (degrees * pi / 180.0f);
+}
+
+Ray rt_camera_get_ray(device struct s_cam *cam, uint2 viewport, uint2 pixel)
+{
+	float2 v = static_cast<float2>(viewport);
+	float2 p = static_cast<float2>(pixel);
+//	fov-range x and y
+	float4 fr;
+	fr.xy = float2(-1 * cam->fov[0] / 2, cam->fov[0] / 2);
+//	fr.zw = float2(-1 * cam->fov[1] / 2, cam->fov[1] / 2);
+	fr.zw = float2(cam->fov[1] / 2, -1 * cam->fov[1] / 2);
+//	map to radians m
+	p = map2(p, float4(0, v.x, 0, v.y), fr);
+	p = angle2_to_radians(p);
+//	float3 dest = rerp2(p, float3(cam->forward), float3(cam->right), float3(cam->up));
+	float3 dest = rerp2(p, float3(cam->forward), float3(cam->up), float3(cam->right));
+	Ray ray = Ray(float3(cam->pos), dest);
+	return ray;
 }

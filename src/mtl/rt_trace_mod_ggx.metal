@@ -105,7 +105,7 @@ t_color			rt_trace_mode_ggx(t_scene *scene, t_ray cam_ray)
 	return (col_from_vec_norm(vec_to_srgb(res)));
 }
 
-kernal	void 	trace_mode_ggx(	device	t_scene* 				scene [[buffer(0)]],
+kernal	void 	trace_mode_ggx(	device struct		s_scn		*scene	[[buffer(0)]],
 								texture2d<float,access::write>	pixel [[texture(1)]],
 								uint2                     		gid [[thread_position_in_grid]])
 {

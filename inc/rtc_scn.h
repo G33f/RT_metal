@@ -36,8 +36,18 @@ struct				s_mat
 	t_vec3			f0;
 };
 
+
+struct		s_light
+{
+	int				id;
+	t_vec3			pos;
+	t_vec3			col;
+	t_num			power;
+};
+
 #define RT_MAX_OBJECTS 128
 #define RT_MAX_CAMERAS 16
+#define RT_MAX_LIGHTS 16
 #define RT_MAX_MATERIALS 32
 
 /*
@@ -56,6 +66,8 @@ typedef struct		s_scn
 	int				cameras_num;
 	struct s_mat	materials[RT_MAX_MATERIALS];
 	int				materials_num;
+	struct s_light	lights[RT_MAX_LIGHTS];
+	int 			light_num;
 }					t_scn;
 
 

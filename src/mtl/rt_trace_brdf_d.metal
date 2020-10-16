@@ -39,7 +39,7 @@ t_color		rt_trace_brdf_d(t_scene *scene, t_ray ray)
 	return (col_from_vec_norm((float3){d, d, d}));
 }
 
-kernal	void 	trace_brdf_d(	device	t_scene* 				scene [[buffer(0)]],
+kernal	void 	trace_brdf_d(	device struct		s_scn		*scene	[[buffer(0)]],
 								texture2d<float,access::write>	pixel [[texture(1)]],
 								uint2                     		gid [[thread_position_in_grid]])
 {

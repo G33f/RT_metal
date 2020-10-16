@@ -93,9 +93,11 @@ typedef struct		s_scn
 	struct s_obj	objects[RT_MAX_OBJECTS];
 	int				objects_num;
 	struct s_cam	cameras[RT_MAX_CAMERAS];
-	int				camera_active;
 	int				cameras_num;
+	int				camera_active;
 	struct s_mat	materials[RT_MAX_MATERIALS];
 	int				materials_num;
+	struct t_light	*lights;
+	int 			light_num;
 }					t_scn;
 
