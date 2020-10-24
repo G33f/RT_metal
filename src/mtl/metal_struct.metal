@@ -43,38 +43,40 @@ typedef struct		Ray
 
 typedef struct		s_mat
 {
-	packed_float3	color;
+	int				id;
+	packed_float3	albedo;
 	packed_float3	f0;
+	float			transparency;
 	float			ior;
 	float 			roughness;
 	float 			metalness;
 }					t_m;
 
-struct				s_sphere
+typedef struct		s_sphere
 {
 	packed_float3	center;
 	float			r;
-};
+}					t_sphere;
 
-struct				s_cone
+typedef struct		s_cone
 {
 	packed_float3	head;
 	packed_float3	tail;
 	float			r;
-};
+}					t_cone;
 
-struct		s_plane
+typedef struct		s_plane
 {
 	float 			d;
 	packed_float3	normal;
-};
+}					t_plane;
 
-struct		s_cylinder
+typedef struct		s_cylinder
 {
 	packed_float3	head;
 	packed_float3	tail;
 	float			r;
-};
+}					t_cylinder;
 
 typedef union			u_shape
 {
@@ -86,9 +88,10 @@ typedef union			u_shape
 
 typedef struct		s_obj
 {
-	t_shape			obj;
+	int 			id;
+	int				material_id;
 	t_shape_type	type;
-	t_m		material;
+	t_shape			obj;
 }					t_obj;
 
 typedef	struct		s_light
@@ -99,15 +102,24 @@ typedef	struct		s_light
 	float			power;
 }					t_light;
 
-typedef struct		s_cam
+typedef struct		s_fov
+{
+	float 			fov_x;
+	float 			fov_y;
+	float 			delta_x;
+	float 			delta_y;
+	packed_float3	cam_dir;
+}					t_fov;
+
+struct				s_cam
 {
 	int				id;
 	packed_float3	pos;
 	packed_float3	forward;
-	packed_float3	up;
 	packed_float3	right;
-	packed_float2	fov;
-}					t_cam;
+	packed_float3	up;
+	struct s_fov	fov;
+};
 
 typedef struct		s_scn
 {

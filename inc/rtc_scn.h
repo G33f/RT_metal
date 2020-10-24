@@ -15,6 +15,15 @@
 
 # include "rtc_scn_obj.h"
 
+typedef struct		s_fov
+{
+	float 			fov_x;
+	float 			fov_y;
+	float 			delta_x;
+	float 			delta_y;
+	t_vec3			cam_dir;
+}					t_fov;
+
 struct				s_cam
 {
 	int				id;
@@ -22,28 +31,16 @@ struct				s_cam
 	t_vec3			forward;
 	t_vec3			right;
 	t_vec3			up;
-	t_vec2			fov;
+	struct s_fov	fov;
 };
 
-struct				s_mat
+typedef	struct		s_light
 {
-	int				id;
-	float 			metalness;
-	float 			roughness;
-	float 			ior;
-	float 			transparency;
-	t_vec3			albedo;
-	t_vec3			f0;
-};
-
-
-struct		s_light
-{
-	int				id;
+	int 			id;
 	t_vec3			pos;
 	t_vec3			col;
-	t_num			power;
-};
+	float			power;
+}					t_light;
 
 #define RT_MAX_OBJECTS 128
 #define RT_MAX_CAMERAS 16

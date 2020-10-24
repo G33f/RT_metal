@@ -15,56 +15,66 @@
 
 # include "libnum.h"
 
-enum e_obj_type
+typedef enum		e_shape_type
 {
-	OBJ_NONE = 0,
-	OBJ_PLANE,
-	OBJ_SPHERE,
-	OBJ_CYLINDER,
-	OBJ_CONE,
-	OBJ_GEOMETRY
-};
+	NONE = 0,
+	CONE,
+	SPHERE,
+	PLANE,
+	CYLINDER
+}					t_shape_type;
+
+typedef struct		s_mat
+{
+	int				id;
+	t_vec3			albedo;
+	t_vec3			f0;
+	float			transparency;
+	float			ior;
+	float 			roughness;
+	float 			metalness;
+}					t_m;
 
 struct				s_sphere
 {
-	t_vec3			pos;
-	t_num			r;
+	t_vec3			center;
+	float			r;
 };
 
-struct				s_plane
+struct				s_cone
 {
-	t_vec3			n;
-	t_vec3			d;
+	t_vec3			head;
+	t_vec3			tail;
+	float			r;
+};
+
+struct		s_plane
+{
+	float 			d;
+	t_vec3			normal;
 };
 
 struct		s_cylinder
 {
 	t_vec3			head;
 	t_vec3			tail;
-	t_num			radius;
+	float			r;
 };
 
-struct		s_cone
-{
-	t_vec3			head;
-	t_vec3			tail;
-	t_num			radius;
-}					t_cone;
-
-union				u_obj_content
+typedef union			u_shape
 {
 	struct s_sphere		sphere;
+	struct s_cone		cone;
 	struct s_plane		plane;
 	struct s_cylinder	cylinder;
-	struct s_cone		cone;
-};
+}						t_shape;
 
-struct				s_obj
+typedef struct			s_obj
 {
-	int						id;
-	int						material_id;
-	enum e_obj_type			type;
-	union u_obj_content		content;
-};
+	int 				id;
+	int					material_id;
+	t_shape_type 		type;
+	t_shape				obj;
+}						t_obj;
 
 #endif

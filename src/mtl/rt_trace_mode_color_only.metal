@@ -13,15 +13,30 @@
 #include <metal_stdlib>
 using namespace metal;
 
+int	find_material_by_id( int id, device struct s_mat *array, int len)
+{
+	for (int i = 0; i < len; i++)
+	{
+		if (array[i].id == id)
+			return (i);
+	}
+	return (-1);
+}
+
 t_color 		rt_trace_mode_color_only(device t_scn *scene, Ray ray)
 {
-	struct s_obj 			nearest;
-	float 					t;
+	thread struct s_obj 			nearest;
+	thread float 					t;
+	int								index;
 
+	nearest.type = NONE;
 	rt_trace_nearest_dist(scene, ray, t, nearest);
-	if (nearest->material)
-		return (col_from_vec_norm(nearest->materials.color));
-	return (t_color(0.0f, 0.0f, 0.0f, (float)ALPHA_MAX));
+	if (nearest.type != NONE)
+	{
+		index = find_material_by_id(nearest.material_id, scene->materials, scene->mat_num);
+		return (float4(float3(scene->materials[index].albedo.xyz), 0));
+	}
+	return (float4(0.0f, 0.0f, 0.0f, 0));
 }
 
 kernel	void 	trace_mode_color_only(	device struct		s_scn		*scene	[[buffer(0)]],
@@ -31,12 +46,10 @@ kernel	void 	trace_mode_color_only(	device struct		s_scn		*scene	[[buffer(0)]],
 {
 	Ray		ray;
 	float4	color;
-	t_color	buf;
 
 	device struct s_cam *cam = &scene->cameras[0];
 	uint2 size = uint2(out.get_width(), out.get_height());
 	ray = rt_camera_get_ray(cam, size, gid);
-	buf = rt_trace_mode_color_only(scene, ray);
-	color = float4(buf.r, buf.g, buf.g, buf.a);
+	color = rt_trace_mode_color_only(scene, ray);
 	out.write(color, gid);
 }
