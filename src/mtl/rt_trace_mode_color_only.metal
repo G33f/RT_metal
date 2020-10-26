@@ -40,8 +40,8 @@ t_color 		rt_trace_mode_color_only(device t_scn *scene, Ray ray)
 }
 
 kernel	void 	trace_mode_color_only(	device struct		s_scn		*scene	[[buffer(0)]],
-										texture2d<float,access::write>	out [[texture(1)]],
-										uint2                     		gid [[thread_position_in_grid]])
+										texture2d<float,access::write>	out		[[texture(1)]],
+										uint2                     		gid		[[thread_position_in_grid]])
 
 {
 	Ray		ray;
@@ -49,7 +49,9 @@ kernel	void 	trace_mode_color_only(	device struct		s_scn		*scene	[[buffer(0)]],
 
 	device struct s_cam *cam = &scene->cameras[0];
 	uint2 size = uint2(out.get_width(), out.get_height());
-	ray = rt_camera_get_ray(cam, size, gid);
+	float2 ls = map2(float2(gid.x, gid.y), float4(float2(0.0f, (float)size.x), float2(0.0f, (float)size.y)), float4(float2(-1 * (float)size.x / 2, (float)size.x / 2), float2(-1 * (float)size.y / 2, (float)size.y / 2)));
+	ray = Ray(cam->pos, normalize(float3(ls.x, ls.y, 1000.0)));
+//	ray = rt_camera_get_ray(cam, size, gid);
 	color = rt_trace_mode_color_only(scene, ray);
 	out.write(color, gid);
 }

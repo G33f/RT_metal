@@ -25,8 +25,8 @@ void		rtc_hooks_editor(void *win)
 #define RT_BUF_SCENE "scene"
 #define IMG_RES "image_result"
 
-#define RT_WIN_EDITOR_W 1280
-#define RT_WIN_EDITOR_H 720
+#define RT_WIN_EDITOR_W 1920
+#define RT_WIN_EDITOR_H 1080
 
 void rtc_mgx_load_buffer(t_rts *rts);
 void rtc_mgx_load_lib(t_rts *rts, char *name);

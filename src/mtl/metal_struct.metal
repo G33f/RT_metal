@@ -102,24 +102,15 @@ typedef	struct		s_light
 	float			power;
 }					t_light;
 
-typedef struct		s_fov
-{
-	float 			fov_x;
-	float 			fov_y;
-	float 			delta_x;
-	float 			delta_y;
-	packed_float3	cam_dir;
-}					t_fov;
-
-struct				s_cam
+typedef struct		s_cam
 {
 	int				id;
 	packed_float3	pos;
 	packed_float3	forward;
 	packed_float3	right;
 	packed_float3	up;
-	struct s_fov	fov;
-};
+	packed_float2	fov;
+}					t_cam;
 
 typedef struct		s_scn
 {

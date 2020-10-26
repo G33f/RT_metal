@@ -28,13 +28,13 @@ int			rtc_scn_init(t_scn **scn_ptr, t_idm *idm)
 	scene->objects[0].id = 6;
 	scene->objects[0].type = SPHERE;
 	scene->objects[0].material_id = 9;
-	scene->objects[0].obj.sphere.center = (t_vec3){100.0, 0.0, 0.0};
+	scene->objects[0].obj.sphere.center = (t_vec3){0.0, 0.0, 100.0};
 	scene->objects[0].obj.sphere.r = (t_num){4.1};
 
 	scene->objects[1].id = 4;
 	scene->objects[1].type = SPHERE;
 	scene->objects[1].material_id = 10;
-	scene->objects[1].obj.sphere.center = (t_vec3){40.0, -5.0, 5.0};
+	scene->objects[1].obj.sphere.center = (t_vec3){20.0, -5.0, 40.0};
 	scene->objects[1].obj.sphere.r = (t_num){3.9};
 
 //	scene->objects[2].id = 8;
@@ -44,12 +44,12 @@ int			rtc_scn_init(t_scn **scn_ptr, t_idm *idm)
 //	scene->objects[2].obj.cone.tail = (t_vec3){50, 0, 0};
 //	scene->objects[2].obj.cone.r = (t_num){0.2};
 
-	scene->objects[2].id = 8;
-	scene->objects[2].type = CYLINDER;
-	scene->objects[2].material_id = 10;
-	scene->objects[2].obj.cylinder.head = (t_vec3){10, 3, 0};
-	scene->objects[2].obj.cylinder.tail = (t_vec3){10, 0, 0};
-	scene->objects[2].obj.cylinder.r = (t_num){0.2};
+//	scene->objects[2].id = 8;
+//	scene->objects[2].type = CYLINDER;
+//	scene->objects[2].material_id = 10;
+//	scene->objects[2].obj.cylinder.head = (t_vec3){10, 3, 0};
+//	scene->objects[2].obj.cylinder.tail = (t_vec3){10, 0, 0};
+//	scene->objects[2].obj.cylinder.r = (t_num){0.2};
 
 //	scene->objects[2].id = 14;
 //	scene->objects[2].type = PLANE;
@@ -57,7 +57,7 @@ int			rtc_scn_init(t_scn **scn_ptr, t_idm *idm)
 //	scene->objects[2].obj.plane.normal = (t_vec3){0.0, 1.0, 0.0};
 //	scene->objects[2].obj.plane.d = 5;
 
-	scene->objects_num = 3;
+	scene->objects_num = 2;
 
 
 	scene->cameras[0].id = 7;
@@ -66,11 +66,7 @@ int			rtc_scn_init(t_scn **scn_ptr, t_idm *idm)
 	scene->cameras[0].right = (t_vec3){0.0, 1.0, 0.0};
 	scene->cameras[0].up = (t_vec3){0.0, 0.0, 1.0};
 	//fov in degrees
-	scene->cameras[0].fov.fov_x = 66;
-	scene->cameras[0].fov.fov_y = 52;
-	scene->cameras[0].fov.delta_x = scene->cameras[0].fov.fov_x / 1280;
-	scene->cameras[0].fov.delta_y = scene->cameras[0].fov.fov_y / 720;
-	scene->cameras[0].fov.cam_dir = (t_vec3){0.0, 0.0, 1.0};
+	scene->cameras[0].fov = (t_vec2){90.0, 59.0};
 	scene->cameras_num = 1;
 
 	scene->materials[0].id = 9;
@@ -94,7 +90,6 @@ int			rtc_scn_init(t_scn **scn_ptr, t_idm *idm)
 	scene->lights->pos = (t_vec3){0.0, 0.0, 0.0};
 	scene->lights->col = (t_vec3){1.0, 1.0, 1.0};
 	scene->lights->power = 1;
-
 
 //	scene->materials_num = 1;
 	scene->materials_num = 2;

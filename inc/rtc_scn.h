@@ -15,15 +15,6 @@
 
 # include "rtc_scn_obj.h"
 
-typedef struct		s_fov
-{
-	float 			fov_x;
-	float 			fov_y;
-	float 			delta_x;
-	float 			delta_y;
-	t_vec3			cam_dir;
-}					t_fov;
-
 struct				s_cam
 {
 	int				id;
@@ -31,7 +22,7 @@ struct				s_cam
 	t_vec3			forward;
 	t_vec3			right;
 	t_vec3			up;
-	struct s_fov	fov;
+	t_vec2			fov;
 };
 
 typedef	struct		s_light

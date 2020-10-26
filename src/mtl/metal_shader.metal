@@ -526,16 +526,15 @@ Ray rt_camera_get_ray(device struct s_cam *cam, uint2 viewport, uint2 pixel)
 	float2 v = static_cast<float2>(viewport);
 	float2 p = static_cast<float2>(pixel);
 //	fov-range x and y
-//	float4 fr;
-//	fr.xy = float2(-1 * cam->fov[0] / 2, cam->fov[0] / 2);
-//	fr.zw = float2(-1 * cam->fov[1] / 2, cam->fov[1] / 2);
+	float4 fr;
+	fr.xy = float2(-1 * cam->fov[0] / 2, cam->fov[0] / 2);
+	fr.zw = float2(-1 * cam->fov[1] / 2, cam->fov[1] / 2);
 //	fr.zw = float2(cam->fov[1] / 2, -1 * cam->fov[1] / 2);
 //	map to radians m
-//	p = map2(p, float4(0, v.x, 0, v.y), fr);
-//	p = angle2_to_radians(float2(cam->fov.delta_x * v.x, cam->fov.delta_y * v.y));
-	p = angle2_to_radians(float2(cam->fov.delta_x * p.x, cam->fov.delta_y * p.y));
-	float3 dest = rerp2(p, float3(cam->forward), float3(cam->right), float3(cam->up));
-//	float3 dest = rerp2(p, float3(cam->forward), float3(cam->up), float3(cam->right));
+	p = map2(p, float4(0, v.x - 1, 0, v.y - 1), fr);
+	p = angle2_to_radians(p);
+//	float3 dest = rerp2(p, float3(cam->forward), float3(cam->right), float3(cam->up));
+	float3 dest = rerp2(p, float3(cam->forward), float3(cam->up), float3(cam->right));
 	Ray ray = Ray(float3(cam->pos), dest);
 	return ray;
 }
