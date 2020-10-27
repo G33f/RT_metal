@@ -42,7 +42,6 @@ t_color 		rt_trace_mode_color_only(device t_scn *scene, Ray ray)
 kernel	void 	trace_mode_color_only(	device struct		s_scn		*scene	[[buffer(0)]],
 										texture2d<float,access::write>	out		[[texture(1)]],
 										uint2                     		gid		[[thread_position_in_grid]])
-
 {
 	Ray		ray;
 	float4	color;

@@ -130,7 +130,6 @@ typedef struct			s_ggx_loop
 {
 	Ray					normal;
 	Ray					cam_ray;
-	t_scn				scene[1];
-	t_light				lamp[1];
-	t_m					mat[1];
+	int					light_id;
+	int 				mat_id;
 }						t_ggx_loop;

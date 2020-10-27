@@ -37,19 +37,19 @@ int			rtc_scn_init(t_scn **scn_ptr, t_idm *idm)
 	scene->objects[1].obj.sphere.center = (t_vec3){20.0, -5.0, 40.0};
 	scene->objects[1].obj.sphere.r = (t_num){3.9};
 
-	scene->objects[2].id = 8;
-	scene->objects[2].type = CONE;
-	scene->objects[2].material_id = 10;
-	scene->objects[2].obj.cone.head = (t_vec3){5, 10, 40};
-	scene->objects[2].obj.cone.tail = (t_vec3){5, -10, 40};
-	scene->objects[2].obj.cone.r = (t_num){3.2};
-
-	scene->objects[3].id = 8;
-	scene->objects[3].type = CYLINDER;
-	scene->objects[3].material_id = 9;
-	scene->objects[3].obj.cylinder.head = (t_vec3){-5, 4, 40};
-	scene->objects[3].obj.cylinder.tail = (t_vec3){-10, 4, 30};
-	scene->objects[3].obj.cylinder.r = (t_num){2.5};
+//	scene->objects[2].id = 8;
+//	scene->objects[2].type = CONE;
+//	scene->objects[2].material_id = 10;
+//	scene->objects[2].obj.cone.head = (t_vec3){5, 10, 40};
+//	scene->objects[2].obj.cone.tail = (t_vec3){5, -10, 40};
+//	scene->objects[2].obj.cone.r = (t_num){3.2};
+//
+//	scene->objects[3].id = 8;
+//	scene->objects[3].type = CYLINDER;
+//	scene->objects[3].material_id = 9;
+//	scene->objects[3].obj.cylinder.head = (t_vec3){-5, 4, 40};
+//	scene->objects[3].obj.cylinder.tail = (t_vec3){-10, 4, 30};
+//	scene->objects[3].obj.cylinder.r = (t_num){2.5};
 
 //	scene->objects[2].id = 14;
 //	scene->objects[2].type = PLANE;
@@ -86,10 +86,10 @@ int			rtc_scn_init(t_scn **scn_ptr, t_idm *idm)
 	scene->materials[1].f0 = (t_vec3){0.0, 0.0, 0.0};
 
 	scene->light_num = 1;
-	scene->lights->id = 3;
-	scene->lights->pos = (t_vec3){0.0, 0.0, 0.0};
-	scene->lights->col = (t_vec3){1.0, 1.0, 1.0};
-	scene->lights->power = 1;
+	scene->lights[0].id = 3;
+	scene->lights[0].pos = (t_vec3){3.0, 2.0, 1.0};
+	scene->lights[0].col = (t_vec3){1.0, 1.0, 1.0};
+	scene->lights[0].power = 1;
 
 //	scene->materials_num = 1;
 	scene->materials_num = 2;

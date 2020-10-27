@@ -81,27 +81,27 @@ float4		col_from_normal(float3 vector)
 
 }
 
-//float4		col_from_vec_norm(float3 vector)
-//{
-//	float4	res;
-//
-//	res.x = (unsigned char)(num_clamp(vector.x, 0, 1) * COLOR_MAX);
-//	res.y = (unsigned char)(num_clamp(vector.y, 0, 1) * COLOR_MAX);
-//	res.z = (unsigned char)(num_clamp(vector.z, 0, 1) * COLOR_MAX);
-//	res.w = 0;
-//	return (res);
-//}
-
 float4		col_from_vec_norm(float3 vector)
 {
 	float4	res;
 
-	res.x = vector.x;
-	res.y = vector.y;
-	res.z = vector.z;
+	res.x = (float)(num_clamp(vector.x, 0, 1) * 1);
+	res.y = (float)(num_clamp(vector.y, 0, 1) * 1);
+	res.z = (float)(num_clamp(vector.z, 0, 1) * 1);
 	res.w = 0;
 	return (res);
 }
+
+//float4		col_from_vec_norm(float3 vector)
+//{
+//	float4	res;
+//
+//	res.x = vector.x;
+//	res.y = vector.y;
+//	res.z = vector.z;
+//	res.w = 0;
+//	return (res);
+//}
 
 float3	fresnel_schlick(float3 f0, float cos_theta)
 {
@@ -109,7 +109,7 @@ float3	fresnel_schlick(float3 f0, float cos_theta)
 
 	cos_theta = 1.0 - num_clamp(cos_theta, 0.0, 1.0);
 	cos_theta = cos_theta * cos_theta * cos_theta * cos_theta * cos_theta;
-	res = (((float3){1.0, 1.0, 1.0} - f0) * cos_theta);
+	res = (float3(1.0, 1.0, 1.0)- f0) * cos_theta;
 	res = f0 + res;
 	return (res);
 }
