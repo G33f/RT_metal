@@ -197,10 +197,9 @@ float3					cone_intersect(Ray ray, device struct s_cone *cone, float3 v)
 
 	d = cone->r / length((float3)cone->tail - (float3)cone->head);
 	x = (float3)ray.pos - (float3)cone->tail;
-	a = dot(ray.dir, ray.dir)
-		- (1 + (d * d)) * sqrt(dot(ray.dir, v));
+	a = dot(ray.dir, ray.dir) - (1 + (d * d)) * pow(dot(ray.dir, v), 2);
 	b = (dot(ray.dir, x) - dot(ray.dir, v) * (1 + d * d) * dot(x, v)) * 2;
-	c = dot(x, x) - (1 + d * d) * sqrt(dot(x, v));
+	c = dot(x, x) - (1 + d * d) * pow(dot(x, v), 2);
 	d = (b * b) - 4 * a * c;
 	if (d < 0)
 		return (float3(INFINITY));
@@ -259,15 +258,15 @@ float3					cylinder_intersect(Ray ray, struct s_cylinder cyl, float3 v)
 	float				c;
 	float				d;
 
-	x = ray.pos - (float3)cyl.tail;
-	a = dot(ray.dir, ray.dir) - sqrt(dot(ray.dir, v));
+	x = float3(ray.pos) - float3(cyl.tail);
+	a = dot(ray.dir, ray.dir) - pow(dot(ray.dir, v), 2);
 	b = (dot(ray.dir, x) - dot(ray.dir, v) * dot(x, v)) * 2;
-	c = dot(x, x) - sqrt(dot(x, v)) - sqrt(cyl.r);
+	c = dot(x, x) - pow(dot(x, v), 2) - pow(cyl.r, 2);
 	d = (b * b) - 4 * a * c;
 	if (d < 0)
-		return ((float3){INFINITY, INFINITY, INFINITY});
+		return (float3(INFINITY));
 	d = sqrt(d);
-	return ((float3){(-b - d) / (2 * a), (-b + d) / (2 * a), 0});
+	return (float3((-b - d) / (2 * a), (-b + d) / (2 * a), 0));
 }
 
 static float3			cylinder_capped(Ray ray, struct s_cylinder cyl)
@@ -278,24 +277,24 @@ static float3			cylinder_capped(Ray ray, struct s_cylinder cyl)
 	float3				m;
 	float				x_dot_v;
 
-	v = normalize(cyl.head - cyl.tail);
+	v = normalize(float3(cyl.head) - float3(cyl.tail));
 	points = cylinder_intersect(ray, cyl, v);
-	maxm = length(cyl.head - cyl.tail);
-	x_dot_v = dot((ray.pos - cyl.tail), v);
+	maxm = length(float3(cyl.head) - float3(cyl.tail));
+	x_dot_v = dot((ray.pos - float3(cyl.tail)), v);
 	m.x = dot(ray.dir, (v * points.x)) + x_dot_v;
 	m.y = dot(ray.dir, (v * points.y)) + x_dot_v;
 	if (m.x >= 0 && m.x <= maxm && m.y >= 0 && m.y <= maxm)
 		return (points);
 	if ((m.x < 0 && m.y < 0) || (m.x > maxm && m.y > maxm))
-		return ((float3){INFINITY, INFINITY, INFINITY});
+		return (float3(INFINITY));
 	if (m.x < 0)
-		points.x = trace_dot_cap(ray, (Ray) {cyl.tail, -(v)});
+		points.x = trace_dot_cap(ray, Ray(float3(cyl.tail), -(v)));
 	if (m.y < 0)
-		points.y = trace_dot_cap(ray, (Ray) {cyl.tail, -(v)});
+		points.y = trace_dot_cap(ray, Ray(float3(cyl.tail), -(v)));
 	if (m.x > maxm)
-		points.x = trace_dot_cap(ray, (Ray){cyl.head, v});
+		points.x = trace_dot_cap(ray, Ray(float3(cyl.head), v));
 	if (m.y > maxm)
-		points.y = trace_dot_cap(ray, (Ray){cyl.head, v});
+		points.y = trace_dot_cap(ray, Ray(float3(cyl.head), v));
 	return (points);
 }
 
