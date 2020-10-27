@@ -96,7 +96,7 @@ t_color			rt_trace_mode_ggx(device t_scn *scene, Ray cam_ray)
 	if (!dist)
 		return (t_color(0, 0, 0, 0));
 	normal.pos = cam_ray.pos + cam_ray.dir * (dist - 0.0001);
-	normal.dir = trace_normal_fig(cam_ray, &scene->objects[1]);
+	normal.dir = trace_normal_fig(cam_ray, &scene->objects[nearest.id]);
 	res = (float3){0.0f, 0.0f, 0.0f};
 	i = 0;
 	while (i < scene->light_num)
@@ -105,7 +105,7 @@ t_color			rt_trace_mode_ggx(device t_scn *scene, Ray cam_ray)
 		i++;
 	}
 	res = vec_clamp(res, 0, 1);
-	return (float4(res, 0));
+	return (col_from_vec_norm(vec_to_srgb(res)));
 }
 
 kernel	void 	trace_mod_ggx(	device struct		s_scn		*scene	[[buffer(0)]],

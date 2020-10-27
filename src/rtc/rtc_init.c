@@ -72,7 +72,7 @@ int			rtc_init(t_rts *rts)
 	else
 		ft_printf("image success!\n");
 
-	if (mlx_metal_kernel_run(rts->mgx, "trace_mode_ggx", RT_BUF_SCENE, IMG_RES))
+	if (mlx_metal_kernel_run(rts->mgx, "trace_mod_ggx", RT_BUF_SCENE, IMG_RES))
 		ft_printf("kernel govno\n");
 	else
 		ft_printf("kernel success!\n");
