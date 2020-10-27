@@ -92,11 +92,11 @@ t_color			rt_trace_mode_ggx(device t_scn *scene, Ray cam_ray)
 	float3				res;
 
 
-	rt_trace_nearest_dist(scene, cam_ray, dist, nearest);
+	i = rt_trace_nearest_dist(scene, cam_ray, dist, nearest);
 	if (!dist)
 		return (t_color(0, 0, 0, 0));
 	normal.pos = cam_ray.pos + cam_ray.dir * (dist - 0.0001);
-	normal.dir = trace_normal_fig(cam_ray, &scene->objects[nearest.id]);
+	normal.dir = trace_normal_fig(cam_ray, &scene->objects[i]);
 	res = (float3){0.0f, 0.0f, 0.0f};
 	i = 0;
 	while (i < scene->light_num)

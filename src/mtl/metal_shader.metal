@@ -332,14 +332,15 @@ float					trace_dot_fig(Ray ray, device t_obj *fig)
 		return (INFINITY);
 }
 
-void			rt_trace_nearest_dist(device t_scn *scene, Ray ray, thread float &dist, thread t_obj &nearest)
+int			rt_trace_nearest_dist(device t_scn *scene, Ray ray, thread float &dist, thread t_obj &nearest)
 {
 	float				tmp_dist;
 	float				res_dist;
 	int 				i;
+	int					nearest_num;
 
 	if (!scene)
-		return ;
+		return (0);
 	res_dist = INFINITY;
 	i = 0;
 	while (i < scene->obj_num)
@@ -349,11 +350,13 @@ void			rt_trace_nearest_dist(device t_scn *scene, Ray ray, thread float &dist, t
 		{
 			res_dist = tmp_dist;
 			nearest = scene->objects[i];
+			nearest_num = i;
 		}
 		i++;
 	}
 	if (dist)
 		dist = res_dist;
+	return (nearest_num);
 }
 
 /*
@@ -392,7 +395,7 @@ float		brdf_get_g(float3 n, float3 v, float3 l, t_m *mat)
 float3				trace_normal_plane(Ray ray, device t_obj *fig)
 {
 	if (!fig)
-		return ((float3){INFINITY, INFINITY, INFINITY});
+		return (float3(INFINITY));
 	if ((float)fig->obj.plane.normal.x * ray.pos.x + (float)fig->obj.plane.normal.y * ray.pos.y
 		+ (float)fig->obj.plane.normal.z * ray.pos.z + (float)fig->obj.plane.d < 0)
 		return (-(fig->obj.plane.normal));
@@ -408,7 +411,7 @@ float3				trace_normal_sphere(Ray ray, device t_obj *fig)
 	if (!fig)
 		return (float3(INFINITY));
 	bounce_pos = ray.pos + (ray.dir * trace_dot_sphere(ray, fig));
-	return (normalize(bounce_pos - (float3)fig->obj.sphere.center));
+	return (normalize(bounce_pos - float3(fig->obj.sphere.center)));
 }
 
 ///cone norm--------------------------------------------------
@@ -423,13 +426,13 @@ float3				trace_normal_cone(Ray ray_in, device t_obj *fig)
 
 	if (!fig)
 		return (float3(INFINITY));
-	v = (float3)fig->obj.cone.head - (float3)fig->obj.cone.tail;
+	v = float3(fig->obj.cone.head) - float3(fig->obj.cone.tail);
 	ray_in.dir = normalize(ray_in.dir);
 	point_p = ray_in.pos + ray_in.dir * trace_dot_cone(ray_in, fig);
 	cg = length(v);
 	cr = (float)sqrt((float)(sqrt(fig->obj.cone.r) + sqrt(cg)));
-	ca = normalize(v) * (cg * length(point_p - (float3)fig->obj.cone.tail) / cr);
-	return (normalize(point_p - ((float3)fig->obj.cone.tail + ca)));
+	ca = normalize(v) * (cg * length(point_p - float3(fig->obj.cone.tail)) / cr);
+	return (normalize(point_p - (float3(fig->obj.cone.tail) + ca)));
 }
 
 ///cylinder norm-----------------------------------------------
@@ -462,10 +465,10 @@ float3				trace_normal_cylinder(Ray ray, device t_obj *fig)
 
 	if (!fig)
 		return (float3(INFINITY));
-	v = normalize((float3)fig->obj.cylinder.head - (float3)fig->obj.cylinder.tail);
+	v = normalize(float3(fig->obj.cylinder.head) - float3(fig->obj.cylinder.tail));
 	dis = cylinder_intersect(ray, fig->obj.cylinder, v);
-	maxm = length((float3)fig->obj.cylinder.tail - (float3)fig->obj.cylinder.head);
-	m = cylinder_m(ray, v, (float3)fig->obj.cylinder.tail, dis);
+	maxm = length(float3(fig->obj.cylinder.tail) - float3(fig->obj.cylinder.head));
+	m = cylinder_m(ray, v, float3(fig->obj.cylinder.tail), dis);
 	if (dis.x > dis.y)
 	{
 		dis.x = dis.y;
@@ -476,7 +479,7 @@ float3				trace_normal_cylinder(Ray ray, device t_obj *fig)
 	else if (m.x > maxm)
 		return (v);
 	p = ray.pos + ray.dir * dis.x;
-	return (cylinder_side_nrm(p, fig->obj.cylinder.tail, v, m.x));
+	return (cylinder_side_nrm(p, float3(fig->obj.cylinder.tail), v, m.x));
 }
 
 float3		trace_normal_fig(Ray ray, device t_obj *fig)
