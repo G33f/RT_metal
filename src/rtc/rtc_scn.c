@@ -27,13 +27,13 @@ int			rtc_scn_init(t_scn **scn_ptr, t_idm *idm)
 
 	scene->objects[0].id = 6;
 	scene->objects[0].type = SPHERE;
-	scene->objects[0].material_id = 9;
+	scene->objects[0].material_id = 0;
 	scene->objects[0].obj.sphere.center = (t_vec3){0.0, 0.0, 100.0};
-	scene->objects[0].obj.sphere.r = (t_num){4.1};
+	scene->objects[0].obj.sphere.r = (t_num){5.1};
 
 	scene->objects[1].id = 4;
 	scene->objects[1].type = SPHERE;
-	scene->objects[1].material_id = 10;
+	scene->objects[1].material_id = 1;
 	scene->objects[1].obj.sphere.center = (t_vec3){20.0, -5.0, 40.0};
 	scene->objects[1].obj.sphere.r = (t_num){3.9};
 
@@ -69,7 +69,7 @@ int			rtc_scn_init(t_scn **scn_ptr, t_idm *idm)
 	scene->cameras[0].fov = (t_vec2){90.0, 59.0};
 	scene->cameras_num = 1;
 
-	scene->materials[0].id = 9;
+	scene->materials[0].id = 0;
 	scene->materials[0].metalness = 0;
 	scene->materials[0].roughness = 0.5f;
 	scene->materials[0].ior = 1.2f;
@@ -77,22 +77,23 @@ int			rtc_scn_init(t_scn **scn_ptr, t_idm *idm)
 	scene->materials[0].albedo = (t_vec3){1.0, 1.0, 0.0};
 	scene->materials[0].f0 = (t_vec3){0.0, 0.0, 0.0};
 
-	scene->materials[1].id = 10;
+	scene->materials[1].id = 1;
 	scene->materials[1].metalness = 0;
-	scene->materials[1].roughness = 0.5f;
+	scene->materials[1].roughness = 1.0f;
 	scene->materials[1].ior = 1.2f;
 	scene->materials[1].transparency = 0.0f;
 	scene->materials[1].albedo = (t_vec3){1.0, 0.0, 1.0};
 	scene->materials[1].f0 = (t_vec3){0.0, 0.0, 0.0};
 
-	scene->light_num = 1;
-	scene->lights[0].id = 3;
-	scene->lights[0].pos = (t_vec3){3.0, 2.0, 1.0};
-	scene->lights[0].col = (t_vec3){1.0, 1.0, 1.0};
-	scene->lights[0].power = 1;
-
-//	scene->materials_num = 1;
 	scene->materials_num = 2;
+
+	scene->lights[0].id = 3;
+	scene->lights[0].pos = (t_vec3){0.0, 0.0, 0.0};
+	scene->lights[0].col = (t_vec3){1.0, 1.0, 1.0};
+	scene->lights[0].power = 5000;
+
+	scene->light_num = 1;
+//	scene->materials_num = 1;
 	//TODO init scene
 
 	*scn_ptr = scene;

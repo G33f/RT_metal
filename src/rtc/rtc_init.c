@@ -20,6 +20,7 @@ void		rtc_hooks_editor(void *win)
 // TODO add viewer window
 // TODO add renderer window
 
+//#define RT_MTL_FILES "src/mtl/metal_struct.metal src/mtl/metal_shader.metal src/mtl/rt_trace_mode_color_only.metal"
 #define RT_MTL_FILES "src/mtl/metal_struct.metal src/mtl/metal_shader.metal src/mtl/rt_trace_mod_ggx.metal"
 //#define RT_MTL_FILES "src/mtl/_rt__structs.metal src/mtl/_rt__utils.metal src/mtl/_rt_sphere.metal src/mtl/_rt___kernel.metal"
 #define RT_BUF_SCENE "scene"
@@ -72,6 +73,7 @@ int			rtc_init(t_rts *rts)
 	else
 		ft_printf("image success!\n");
 
+//	if (mlx_metal_kernel_run(rts->mgx, "trace_mode_color_only", RT_BUF_SCENE, IMG_RES))
 	if (mlx_metal_kernel_run(rts->mgx, "trace_mod_ggx", RT_BUF_SCENE, IMG_RES))
 		ft_printf("kernel govno\n");
 	else

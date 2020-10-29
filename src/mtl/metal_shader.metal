@@ -13,6 +13,16 @@
 #include <metal_stdlib>
 using namespace metal;
 
+int	find_material_by_id( int id, device struct s_mat *array, int len)
+{
+	for (int i = 0; i < len; i++)
+	{
+		if (array[i].id == id)
+			return (i);
+	}
+	return (-1);
+}
+
 bool		vec_point_is_behind(float3 vec_from_zero, float3 point)
 {
 	float3 res;
@@ -81,27 +91,27 @@ float4		col_from_normal(float3 vector)
 
 }
 
-float4		col_from_vec_norm(float3 vector)
-{
-	float4	res;
-
-	res.x = (float)(num_clamp(vector.x, 0, 1) * 1);
-	res.y = (float)(num_clamp(vector.y, 0, 1) * 1);
-	res.z = (float)(num_clamp(vector.z, 0, 1) * 1);
-	res.w = 0;
-	return (res);
-}
-
 //float4		col_from_vec_norm(float3 vector)
 //{
 //	float4	res;
 //
-//	res.x = vector.x;
-//	res.y = vector.y;
-//	res.z = vector.z;
+//	res.x = (float)(num_clamp(vector.x, 0, 1));
+//	res.y = (float)(num_clamp(vector.y, 0, 1));
+//	res.z = (float)(num_clamp(vector.z, 0, 1));
 //	res.w = 0;
 //	return (res);
 //}
+
+float4		col_from_vec_norm(float3 vector)
+{
+	float4	res;
+
+	res.x = vector.x;
+	res.y = vector.y;
+	res.z = vector.z;
+	res.w = 0;
+	return (res);
+}
 
 float3	fresnel_schlick(float3 f0, float cos_theta)
 {
@@ -346,7 +356,7 @@ int			rt_trace_nearest_dist(device t_scn *scene, Ray ray, thread float &dist, th
 	while (i < scene->obj_num)
 	{
 		tmp_dist = trace_dot_fig(ray, &(scene->objects[i]));
-		if (tmp_dist < res_dist && tmp_dist > 0)
+		if (tmp_dist < res_dist && tmp_dist > 0 && nearest.id != scene->objects[i].id)
 		{
 			res_dist = tmp_dist;
 			nearest = scene->objects[i];
@@ -354,8 +364,7 @@ int			rt_trace_nearest_dist(device t_scn *scene, Ray ray, thread float &dist, th
 		}
 		i++;
 	}
-	if (dist)
-		dist = res_dist;
+	dist = res_dist;
 	return (nearest_num);
 }
 
@@ -430,7 +439,7 @@ float3				trace_normal_cone(Ray ray_in, device t_obj *fig)
 	ray_in.dir = normalize(ray_in.dir);
 	point_p = ray_in.pos + ray_in.dir * trace_dot_cone(ray_in, fig);
 	cg = length(v);
-	cr = (float)sqrt((float)(sqrt(fig->obj.cone.r) + sqrt(cg)));
+	cr = sqrt(sqrt(fig->obj.cone.r) + sqrt(cg));
 	ca = normalize(v) * (cg * length(point_p - float3(fig->obj.cone.tail)) / cr);
 	return (normalize(point_p - (float3(fig->obj.cone.tail) + ca)));
 }
