@@ -132,9 +132,9 @@ float					trace_dot_plane(Ray ray, device t_obj *fig)
 	if (!fig)
 		return (INFINITY);
 	pl[0] = fig->obj.plane;
-	ray.dir = normalize(ray.dir);
-	d_dot_v = dot(ray.dir, (float3)pl->normal);
-	return (-1 * dot((ray.pos - ((float3)pl->normal * (-1.0 * pl->d))), (float3)pl->normal) / d_dot_v);
+//	ray.dir = normalize(ray.dir);
+	d_dot_v = dot(ray.dir, float3(pl->normal));
+	return (-1 * dot((ray.pos - (float3(pl->normal) * (-1.0 * pl->d))), (float3)pl->normal) / d_dot_v);
 }
 
 float					trace_dot_pl(Ray ray, thread t_obj *fig)
@@ -143,9 +143,9 @@ float					trace_dot_pl(Ray ray, thread t_obj *fig)
 	float				d_dot_v;
 
 	pl[0] = fig->obj.plane;
-	ray.dir = normalize(ray.dir);
-	d_dot_v = dot(ray.dir, (float3)pl->normal);
-	return (-1 * dot((ray.pos - ((float3)pl[0].normal * (-1.0 * pl->d))), (float3)pl[0].normal) / d_dot_v);
+//	ray.dir = normalize(ray.dir);
+	d_dot_v = dot(ray.dir, float3(pl->normal));
+	return (-1 * dot((ray.pos - (float3(pl->normal) * (-1.0 * pl->d))), (float3)pl->normal) / d_dot_v);
 }
 
 
@@ -169,7 +169,7 @@ static float2			sphere_intersect_points(Ray ray, device t_sphere *sphere)
 	float		d;
 	float3		a_min_c;
 
-	a_min_c = (ray.pos - sphere->center);
+	a_min_c = (ray.pos - float3(sphere->center));
 	a = dot(ray.dir, ray.dir);
 	b = 2 * dot(ray.dir, a_min_c);
 	c = dot(a_min_c, a_min_c) - (sphere->r * sphere->r);
@@ -205,8 +205,8 @@ float3					cone_intersect(Ray ray, device struct s_cone *cone, float3 v)
 	float		c;
 	float		d;
 
-	d = cone->r / length((float3)cone->tail - (float3)cone->head);
-	x = (float3)ray.pos - (float3)cone->tail;
+	d = cone->r / length(float3(cone->tail) - float3(cone->head));
+	x = ray.pos - float3(cone->tail);
 	a = dot(ray.dir, ray.dir) - (1 + (d * d)) * pow(dot(ray.dir, v), 2);
 	b = (dot(ray.dir, x) - dot(ray.dir, v) * (1 + d * d) * dot(x, v)) * 2;
 	c = dot(x, x) - (1 + d * d) * pow(dot(x, v), 2);
@@ -225,20 +225,20 @@ static float3			cone_capped(Ray ray_in, device struct s_cone *cone)
 	float3				clamped;
 	float				x_dot_v;
 
-	v = normalize((float3)cone->tail - (float3)cone->head);
+	v = normalize(float3(cone->tail) - float3(cone->head));
 	ray_in.dir = normalize(ray_in.dir);
 	points = cone_intersect(ray_in, cone, v);
-	x_dot_v = dot(ray_in.pos - (float3)cone->head, v);
+	x_dot_v = dot(ray_in.pos - float3(cone->head), v);
 	m.x = dot(ray_in.dir, v * points.x) + x_dot_v;
 	m.y = dot(ray_in.dir, v * points.y) + x_dot_v;
-	clamped.x = num_clamp(m.x, 0, length((float3)cone->head - (float3)cone->tail));
-	clamped.y = num_clamp(m.y, 0, length((float3)cone->head - (float3)cone->tail));
+	clamped.x = num_clamp(m.x, 0, length(float3(cone->head) - float3(cone->tail)));
+	clamped.y = num_clamp(m.y, 0, length((float3)cone->head - float3(cone->tail)));
 	if (clamped.x != m.x && clamped.y != m.y)
 		return (float3(INFINITY));
 	if (clamped.x != m.x)
-		points.x = trace_dot_cap(ray_in, (Ray){cone->tail, v});
+		points.x = trace_dot_cap(ray_in, Ray(float3(cone->tail), v));
 	if (clamped.y != m.y)
-		points.y = trace_dot_cap(ray_in, (Ray){cone->tail, v});
+		points.y = trace_dot_cap(ray_in, Ray(float3(cone->tail), v));
 	return (points);
 }
 
@@ -348,19 +348,24 @@ int			rt_trace_nearest_dist(device t_scn *scene, Ray ray, thread float &dist, th
 	float				res_dist;
 	int 				i;
 	int					nearest_num;
+	t_obj 				near;
 
+	near = nearest;
 	if (!scene)
 		return (0);
 	res_dist = INFINITY;
 	i = 0;
 	while (i < scene->obj_num)
 	{
-		tmp_dist = trace_dot_fig(ray, &(scene->objects[i]));
-		if (tmp_dist < res_dist && tmp_dist > 0 && nearest.id != scene->objects[i].id)
+		if (near.id != scene->objects[i].id)
 		{
-			res_dist = tmp_dist;
-			nearest = scene->objects[i];
-			nearest_num = i;
+			tmp_dist = trace_dot_fig(ray, &(scene->objects[i]));
+			if (tmp_dist < res_dist && tmp_dist > 0)
+			{
+				res_dist = tmp_dist;
+				nearest = scene->objects[i];
+				nearest_num = i;
+			}
 		}
 		i++;
 	}
@@ -439,7 +444,7 @@ float3				trace_normal_cone(Ray ray_in, device t_obj *fig)
 	ray_in.dir = normalize(ray_in.dir);
 	point_p = ray_in.pos + ray_in.dir * trace_dot_cone(ray_in, fig);
 	cg = length(v);
-	cr = sqrt(sqrt(fig->obj.cone.r) + sqrt(cg));
+	cr = sqrt(pow(fig->obj.cone.r, 2) + pow(cg, 2));
 	ca = normalize(v) * (cg * length(point_p - float3(fig->obj.cone.tail)) / cr);
 	return (normalize(point_p - (float3(fig->obj.cone.tail) + ca)));
 }

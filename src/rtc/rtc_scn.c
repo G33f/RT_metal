@@ -29,27 +29,27 @@ int			rtc_scn_init(t_scn **scn_ptr, t_idm *idm)
 	scene->objects[0].type = SPHERE;
 	scene->objects[0].material_id = 0;
 	scene->objects[0].obj.sphere.center = (t_vec3){0.0, 0.0, 100.0};
-	scene->objects[0].obj.sphere.r = (t_num){5.1};
+	scene->objects[0].obj.sphere.r = (t_num){3.1};
 
 	scene->objects[1].id = 4;
 	scene->objects[1].type = SPHERE;
 	scene->objects[1].material_id = 1;
-	scene->objects[1].obj.sphere.center = (t_vec3){20.0, -5.0, 40.0};
+	scene->objects[1].obj.sphere.center = (t_vec3){30.0, -15.0, 40.0};
 	scene->objects[1].obj.sphere.r = (t_num){3.9};
 
-//	scene->objects[2].id = 8;
-//	scene->objects[2].type = CONE;
-//	scene->objects[2].material_id = 10;
-//	scene->objects[2].obj.cone.head = (t_vec3){5, 10, 40};
-//	scene->objects[2].obj.cone.tail = (t_vec3){5, -10, 40};
-//	scene->objects[2].obj.cone.r = (t_num){3.2};
-//
-//	scene->objects[3].id = 8;
-//	scene->objects[3].type = CYLINDER;
-//	scene->objects[3].material_id = 9;
-//	scene->objects[3].obj.cylinder.head = (t_vec3){-5, 4, 40};
-//	scene->objects[3].obj.cylinder.tail = (t_vec3){-10, 4, 30};
-//	scene->objects[3].obj.cylinder.r = (t_num){2.5};
+	scene->objects[2].id = 8;
+	scene->objects[2].type = CONE;
+	scene->objects[2].material_id = 1;
+	scene->objects[2].obj.cone.head = (t_vec3){5, 10, 40};
+	scene->objects[2].obj.cone.tail = (t_vec3){5, -10, 40};
+	scene->objects[2].obj.cone.r = (t_num){3.2};
+
+	scene->objects[3].id = 11;
+	scene->objects[3].type = CYLINDER;
+	scene->objects[3].material_id = 0;
+	scene->objects[3].obj.cylinder.head = (t_vec3){-5, 4, 40};
+	scene->objects[3].obj.cylinder.tail = (t_vec3){-10, 4, 30};
+	scene->objects[3].obj.cylinder.r = (t_num){2.5};
 
 //	scene->objects[2].id = 14;
 //	scene->objects[2].type = PLANE;
@@ -90,7 +90,7 @@ int			rtc_scn_init(t_scn **scn_ptr, t_idm *idm)
 	scene->lights[0].id = 3;
 	scene->lights[0].pos = (t_vec3){0.0, 0.0, 0.0};
 	scene->lights[0].col = (t_vec3){1.0, 1.0, 1.0};
-	scene->lights[0].power = 5000;
+	scene->lights[0].power = 1000;
 
 	scene->light_num = 1;
 //	scene->materials_num = 1;
