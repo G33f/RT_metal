@@ -137,28 +137,25 @@ float					trace_dot_plane(Ray ray, device t_obj *fig)
 	return (-1 * dot((ray.pos - (float3(pl->normal) * (-1.0 * pl->d))), (float3)pl->normal) / d_dot_v);
 }
 
-float					trace_dot_pl(Ray ray, thread t_obj *fig)
+float					trace_dot_pl(Ray ray, t_plane pl)
 {
-	struct	s_plane		pl[1];
 	float				d_dot_v;
 
-	pl[0] = fig->obj.plane;
 //	ray.dir = normalize(ray.dir);
-	d_dot_v = dot(ray.dir, float3(pl->normal));
-	return (-1 * dot((ray.pos - (float3(pl->normal) * (-1.0 * pl->d))), (float3)pl->normal) / d_dot_v);
+	d_dot_v = dot(ray.dir, float3(pl.normal));
+	return (-1 * dot((ray.pos - (float3(pl.normal) * (-1.0 * pl.d))), float3(pl.normal)) / d_dot_v);
 }
 
 
 float					trace_dot_cap(Ray ray, Ray plane_ray)
 {
 	thread t_obj		fig;
-	float				buf;
 
 	fig.type = PLANE;
 	fig.obj.plane.normal = plane_ray.dir;
-	fig.obj.plane.d = -(dot(plane_ray.dir, plane_ray.pos));
-	buf = trace_dot_pl(ray, &fig);
-	return (buf);
+	fig.obj.plane.d = (dot(plane_ray.dir, plane_ray.pos));
+//	fig.obj.plane.d = -1 * (dot(plane_ray.dir, plane_ray.pos));
+	return (trace_dot_pl(ray, fig.obj.plane));
 }
 
 static float2			sphere_intersect_points(Ray ray, device t_sphere *sphere)
@@ -232,7 +229,7 @@ static float3			cone_capped(Ray ray_in, device struct s_cone *cone)
 	m.x = dot(ray_in.dir, v * points.x) + x_dot_v;
 	m.y = dot(ray_in.dir, v * points.y) + x_dot_v;
 	clamped.x = num_clamp(m.x, 0, length(float3(cone->head) - float3(cone->tail)));
-	clamped.y = num_clamp(m.y, 0, length((float3)cone->head - float3(cone->tail)));
+	clamped.y = num_clamp(m.y, 0, length(float3(cone->head) - float3(cone->tail)));
 	if (clamped.x != m.x && clamped.y != m.y)
 		return (float3(INFINITY));
 	if (clamped.x != m.x)
@@ -270,9 +267,9 @@ float3					cylinder_intersect(Ray ray, struct s_cylinder cyl, float3 v)
 
 	x = float3(ray.pos) - float3(cyl.tail);
 	a = dot(ray.dir, ray.dir) - pow(dot(ray.dir, v), 2);
-	b = (dot(ray.dir, x) - dot(ray.dir, v) * dot(x, v)) * 2;
+	b = (dot(ray.dir, x) - (dot(ray.dir, v) * dot(x, v))) * 2;
 	c = dot(x, x) - pow(dot(x, v), 2) - pow(cyl.r, 2);
-	d = (b * b) - 4 * a * c;
+	d = pow(b, 2) - 4 * a * c;
 	if (d < 0)
 		return (float3(INFINITY));
 	d = sqrt(d);
@@ -289,7 +286,7 @@ static float3			cylinder_capped(Ray ray, struct s_cylinder cyl)
 
 	v = normalize(float3(cyl.head) - float3(cyl.tail));
 	points = cylinder_intersect(ray, cyl, v);
-	maxm = length(float3(cyl.head) - float3(cyl.tail));
+	maxm = length(float3(cyl.tail) - float3(cyl.head));
 	x_dot_v = dot((ray.pos - float3(cyl.tail)), v);
 	m.x = dot(ray.dir, (v * points.x)) + x_dot_v;
 	m.y = dot(ray.dir, (v * points.y)) + x_dot_v;
@@ -298,9 +295,9 @@ static float3			cylinder_capped(Ray ray, struct s_cylinder cyl)
 	if ((m.x < 0 && m.y < 0) || (m.x > maxm && m.y > maxm))
 		return (float3(INFINITY));
 	if (m.x < 0)
-		points.x = trace_dot_cap(ray, Ray(float3(cyl.tail), -(v)));
+		points.x = trace_dot_cap(ray, Ray(float3(cyl.tail), (-1 * v)));
 	if (m.y < 0)
-		points.y = trace_dot_cap(ray, Ray(float3(cyl.tail), -(v)));
+		points.y = trace_dot_cap(ray, Ray(float3(cyl.tail), (-1 * v)));
 	if (m.x > maxm)
 		points.x = trace_dot_cap(ray, Ray(float3(cyl.head), v));
 	if (m.y > maxm)

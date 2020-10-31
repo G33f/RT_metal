@@ -12,16 +12,16 @@
 
 #include <metal_stdlib>
 using namespace metal;
-
-int	find_material_by_id( int id, device struct s_mat *array, int len)
-{
-	for (int i = 0; i < len; i++)
-	{
-		if (array[i].id == id)
-			return (i);
-	}
-	return (-1);
-}
+//
+//int	find_material_by_id( int id, device struct s_mat *array, int len)
+//{
+//	for (int i = 0; i < len; i++)
+//	{
+//		if (array[i].id == id)
+//			return (i);
+//	}
+//	return (-1);
+//}
 
 t_color 		rt_trace_mode_color_only(device t_scn *scene, Ray ray)
 {
@@ -30,6 +30,7 @@ t_color 		rt_trace_mode_color_only(device t_scn *scene, Ray ray)
 	int								index;
 
 	nearest.type = NONE;
+	nearest.id = -1;
 	rt_trace_nearest_dist(scene, ray, t, nearest);
 	if (nearest.type != NONE)
 	{

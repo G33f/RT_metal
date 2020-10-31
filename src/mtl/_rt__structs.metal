@@ -3,7 +3,7 @@
 /*                                                        :::      ::::::::   */
 /*   _rt__structs.metal                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: kcharla <kcharla@student.42.fr>            +#+  +:+       +#+        */
+/*   By§: kcharla <kcharla@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/10/14 01:53:59 by kcharla           #+#    #+#             */
 /*   Updated: 2020/10/14 01:53:59 by kcharla          ###   ########.fr       */

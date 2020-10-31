@@ -51,13 +51,20 @@ int			rtc_scn_init(t_scn **scn_ptr, t_idm *idm)
 	scene->objects[3].obj.cylinder.tail = (t_vec3){-10, 4, 30};
 	scene->objects[3].obj.cylinder.r = (t_num){2.5};
 
+	scene->objects[4].id = 14;
+	scene->objects[4].type = PLANE;
+	scene->objects[4].material_id = 1;
+	scene->objects[4].obj.plane.normal = (t_vec3){0, -1, 0};
+	scene->objects[4].obj.plane.d = 200;
+
+
 //	scene->objects[2].id = 14;
 //	scene->objects[2].type = PLANE;
 //	scene->objects[2].material_id = 9;
 //	scene->objects[2].obj.plane.normal = (t_vec3){0.0, 1.0, 0.0};
 //	scene->objects[2].obj.plane.d = 5;
 
-	scene->objects_num = 4;
+	scene->objects_num = 6;
 
 
 	scene->cameras[0].id = 7;

@@ -21,7 +21,7 @@ typedef enum		e_shape_type
 	CONE,
 	SPHERE,
 	PLANE,
-	CYLINDER
+	CYLINDER,
 }					t_shape_type;
 
 typedef struct		s_mat
