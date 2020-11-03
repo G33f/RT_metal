@@ -13,25 +13,6 @@
 #include <metal_stdlib>
 using namespace metal;
 
-float		ggx_partial_geometry(float cos_theta_n, float alpha)
-{
-	cos_theta_n = num_clamp(sqrt(cos_theta_n), 0, 1);
-	cos_theta_n = (1 - cos_theta_n) / cos_theta_n;
-	return (2.0 / (1.0 + sqrt(1.0 + alpha * alpha * cos_theta_n)));
-}
-
-float		ggx_distribution(float cos_theta_nh, float alpha)
-{
-	float		alpha2;
-	float		nh_sqr;
-	float		den;
-
-	alpha2 = alpha * alpha;
-	nh_sqr = num_clamp(sqrt(cos_theta_nh), 0, 1);
-	den = nh_sqr * alpha2 + (1.0 - nh_sqr);
-	return (alpha2 / (pi * den * den));
-}
-
 float3			cook_torrance_ggx(float3 n, float3 l, float3 v, device t_m *m)
 {
 	float		g;
@@ -59,19 +40,19 @@ float3			cook_torrance_ggx(float3 n, float3 l, float3 v, device t_m *m)
 
 static float3	rt_trace_mode_ggx_loop(t_ggx_loop info, device t_scn *scene, thread t_obj &near)
 {
-	float3				to_light;
-	float3				to_view;
-	thread float 		dist_to_shadow;
-	thread struct s_obj nearest;
-	float				dist_to_light;
-	float				light_amount;
+	float3					to_light;
+	float3					to_view;
+	thread float 			dist_to_shadow;
+	thread struct s_obj 	nearest;
+	float					dist_to_light;
+	float					light_amount;
 
 	nearest = near;
 	if (ray_point_is_behind(info.normal, scene->lights[info.light_id].pos))
 		return (float3(0));
 	to_light = float3(scene->lights[info.light_id].pos) - info.normal.pos;
-//	dist_to_light = length(to_light);
-	dist_to_light = length_squared(to_light);
+	dist_to_light = length(to_light);
+//	dist_to_light = length_squared(to_light);
 	dist_to_shadow = 0.0;
 	rt_trace_nearest_dist(scene, Ray(info.normal.pos, to_light), dist_to_shadow, nearest);
 	if (dist_to_shadow > 0.00000001)
@@ -81,11 +62,11 @@ static float3	rt_trace_mode_ggx_loop(t_ggx_loop info, device t_scn *scene, threa
 			return (float3(0.0));
 		}
 	}
-	dist_to_light = length(to_light);
+	dist_to_light = length(to_light) + 1;
 
 	to_view = float3(info.cam_ray.dir) * -1;
-	light_amount = scene->lights[info.light_id].power / (dist_to_light * dist_to_light + 1.0) + 1;
-	return (cook_torrance_ggx(info.normal.dir, to_light,to_view,
+	light_amount = scene->lights[info.light_id].power / (dist_to_light * dist_to_light) + 1;
+	return (cook_torrance_ggx(info.normal.dir, to_light, to_view,
 		&scene->materials[find_material_by_id(info.mat_id, scene->materials ,scene->mat_num)]) * light_amount);
 }
 
@@ -100,9 +81,9 @@ t_color			rt_trace_mode_ggx(device t_scn *scene, Ray cam_ray)
 
 	nearest.id = -1;
 	i = rt_trace_nearest_dist(scene, cam_ray, dist, nearest);
-	if (!dist)
+	if (dist == INFINITY)
 		return (float4(0));
-	normal.pos = cam_ray.pos + cam_ray.dir * (dist);
+	normal.pos = cam_ray.pos + cam_ray.dir * dist;
 	normal.dir = trace_normal_fig(cam_ray, &scene->objects[i]);
 	res = float3(0.0f);
 	i = 0;
@@ -126,6 +107,7 @@ kernel	void 	trace_mod_ggx(	device struct		s_scn		*scene	[[buffer(0)]],
 	uint2 size = uint2(out.get_width(), out.get_height());
 	float2 ls = map2(float2(gid.x, gid.y), float4(float2(0.0f, (float)size.x), float2(0.0f, (float)size.y)), float4(float2(-1 * (float)size.x / 2, (float)size.x / 2), float2(-1 * (float)size.y / 2, (float)size.y / 2)));
 	ray = Ray(cam->pos, normalize(float3(ls.x, ls.y, 1000.0)));
+	//	material_check(scene);
 	//	ray = rt_camera_get_ray(cam, size, gid);
 	color = rt_trace_mode_ggx(scene, ray);
 	out.write(color, gid);

@@ -106,11 +106,30 @@ float4		col_from_vec_norm(float3 vector)
 {
 	float4	res;
 
-	res.x = vector.x;
-	res.y = vector.y;
-	res.z = vector.z;
+	res.x = num_clamp(vector.x, 0, 1);
+	res.y = num_clamp(vector.y, 0, 1);
+	res.z = num_clamp(vector.z, 0, 1);
 	res.w = 0;
 	return (res);
+}
+
+float		ggx_distribution(float cos_theta_nh, float alpha)
+{
+	float		alpha2;
+	float		nh_sqr;
+	float		den;
+
+	alpha2 = alpha * alpha;
+	nh_sqr = num_clamp(pow(cos_theta_nh, 2), 0, 1);
+	den = nh_sqr * alpha2 + (1.0 - nh_sqr);
+	return (alpha2 / (pi * den * den));
+}
+
+float		ggx_partial_geometry(float cos_theta_n, float alpha)
+{
+	cos_theta_n = num_clamp(pow(cos_theta_n, 2), 0, 1);
+	cos_theta_n = (1 - cos_theta_n) / cos_theta_n;
+	return (2.0 / (1.0 + sqrt(1.0 + alpha * alpha * cos_theta_n)));
 }
 
 float3	fresnel_schlick(float3 f0, float cos_theta)
@@ -370,34 +389,32 @@ int			rt_trace_nearest_dist(device t_scn *scene, Ray ray, thread float &dist, th
 	return (nearest_num);
 }
 
-/*
-float		brdf_get_d(float3 n, float3 v, float3 l, t_m *mat)
+float		brdf_get_d(float3 n, float3 v, float3 l, device struct s_mat *mat)
 {
 	float	d;
 	float	roug_sqr;
 	float3	h;
 
-	if (!mat)
-		return (INFINITY);
+//	if (!mat)
+//		return (INFINITY);
 	h = normalize(v + l);
 	roug_sqr = sqrt(mat->roughness);
 	d = ggx_distribution(dot(n, h), roug_sqr);
 	return (d);
 }
 
-float		brdf_get_g(float3 n, float3 v, float3 l, t_m *mat)
+float		brdf_get_g(float3 n, float3 v, float3 l, device struct s_mat *mat)
 {
 	float	g;
 	float	roug_sqr;
 
-	if (!mat)
-		return (INFINITY);
+//	if (!mat)
+//		return (INFINITY);
 	roug_sqr = sqrt(mat->roughness);
 	g = ggx_partial_geometry(dot(n, v), roug_sqr);
 	g = g * ggx_partial_geometry(dot(n, l), roug_sqr);
 	return (g);
 }
-*/
 
 ///figur norm-------------------------------------------------
 
@@ -550,4 +567,32 @@ Ray rt_camera_get_ray(device struct s_cam *cam, uint2 viewport, uint2 pixel)
 	float3 dest = rerp2(p, float3(cam->forward), float3(cam->up), float3(cam->right));
 	Ray ray = Ray(float3(cam->pos), dest);
 	return ray;
+}
+
+t_m		material_apply_parameters(device t_m *mat)
+{
+	float		tmp_f0;
+	t_m			m;
+
+	m = *mat;
+	tmp_f0 = pow((1 - m.ior) / (1 + m.ior), 2);
+	if (mat->metalness)
+	{
+		m.f0 = m.albedo;
+		m.albedo = packed_float3(0);
+	}
+	else
+	{
+		m.f0 = packed_float3(tmp_f0);
+	}
+	return(m);
+}
+
+void material_check(device t_scn *scene)
+{
+	int i;
+
+	i = -1;
+	while (++i < scene->mat_num)
+		scene->materials[i] = material_apply_parameters(&scene->materials[i]);
 }

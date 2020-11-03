@@ -12,6 +12,33 @@
 
 #include "rt.h"
 
+static void		material_apply_parameters(t_m *mat)
+{
+	t_num		tmp_f0;
+
+	if (mat == NULL)
+		return ;
+	tmp_f0 = num_sqr((1 - mat->ior) / (1 + mat->ior));
+	if (mat->metalness == TRUE)
+	{
+		mat->f0 = mat->albedo;
+		mat->albedo = (t_vec3){0, 0, 0};
+	}
+	else
+	{
+		mat->f0 = (t_vec3){tmp_f0, tmp_f0, tmp_f0};
+	}
+}
+
+void material_check(t_scn *scene)
+{
+	int i;
+
+	i = -1;
+	while (++i < scene->materials_num)
+		material_apply_parameters(&scene->materials[i]);
+}
+
 int			rtc_scn_init(t_scn **scn_ptr, t_idm *idm)
 {
 	t_scn			*scene;
@@ -77,19 +104,19 @@ int			rtc_scn_init(t_scn **scn_ptr, t_idm *idm)
 	scene->cameras_num = 1;
 
 	scene->materials[0].id = 0;
-	scene->materials[0].metalness = 0;
-	scene->materials[0].roughness = 0.5f;
-	scene->materials[0].ior = 1.2f;
+	scene->materials[0].metalness = 1;
+	scene->materials[0].roughness = 0.7f;
+	scene->materials[0].ior = 0.47f;
 	scene->materials[0].transparency = 0.0f;
-	scene->materials[0].albedo = (t_vec3){1.0, 1.0, 0.0};
+	scene->materials[0].albedo = (t_vec3){1.00000, 0.88627, 0.60784};
 	scene->materials[0].f0 = (t_vec3){0.0, 0.0, 0.0};
 
 	scene->materials[1].id = 1;
 	scene->materials[1].metalness = 0;
-	scene->materials[1].roughness = 1.0f;
+	scene->materials[1].roughness = 0.7f;
 	scene->materials[1].ior = 1.2f;
 	scene->materials[1].transparency = 0.0f;
-	scene->materials[1].albedo = (t_vec3){1.0, 0.0, 1.0};
+	scene->materials[1].albedo = (t_vec3){0.73, 0.93, 0.0};
 	scene->materials[1].f0 = (t_vec3){0.0, 0.0, 0.0};
 
 	scene->materials_num = 2;
@@ -97,11 +124,13 @@ int			rtc_scn_init(t_scn **scn_ptr, t_idm *idm)
 	scene->lights[0].id = 3;
 	scene->lights[0].pos = (t_vec3){0.0, 0.0, 0.0};
 	scene->lights[0].col = (t_vec3){1.0, 1.0, 1.0};
-	scene->lights[0].power = 1000;
+	scene->lights[0].power = 5000;
 
 	scene->light_num = 1;
 //	scene->materials_num = 1;
 	//TODO init scene
+
+	material_check(scene);
 
 	*scn_ptr = scene;
 	return (0);

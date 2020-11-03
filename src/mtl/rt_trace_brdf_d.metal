@@ -10,20 +10,24 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "metal_shader.h"
+#include <metal_stdlib>
+using namespace metal;
 
-t_color		rt_trace_brdf_d(t_scene *scene, t_ray ray)
+t_color		rt_trace_brdf_d(device t_scn *scene, Ray ray)
 {
-	t_obj		*nearest;
-	t_ray		normal;
-	float3		dist;
-	float3		d;
-	size_t		i;
+	thread struct s_obj nearest;
+	thread float 		dist;
+	Ray					normal;
+	float3				d;
+	int 				i;
+	int					id;
 
-	if ((nearest = rt_trace_nearest_dist(scene, ray, &dist)) == NULL)
-		return ((t_color){0, 0, 0, ALPHA_MAX});
+	nearest.id = -1;
+	id = rt_trace_nearest_dist(scene, ray, dist, nearest);
+	if (!dist)
+		return (float4(0));
 	normal.pos = ray.pos + ray.dir * dist;
-	normal.dir = trace_normal_fig(ray, nearest);
+	normal.dir = trace_normal_fig(ray, &scene->objects[id]);
 	d = 0.0;
 	i = 0;
 	while (i < scene->light_num)
@@ -33,23 +37,23 @@ t_color		rt_trace_brdf_d(t_scene *scene, t_ray ray)
 			i++;
 			continue;
 		}
-		d += brdf_get_d(normal.dir, -ray.dir, scene->lights[i].pos - normal.pos, nearest->material);
+		d += brdf_get_d(normal.dir, -ray.dir, (float3(scene->lights[i].pos) - normal.pos), &scene->materials[find_material_by_id(nearest.material_id, scene->materials ,scene->mat_num)]);
 		i++;
 	}
-	return (col_from_vec_norm((float3){d, d, d}));
+	return(col_from_vec_norm(float3(d)));
 }
 
-kernal	void 	trace_brdf_d(	device struct		s_scn		*scene	[[buffer(0)]],
-								texture2d<float,access::write>	pixel [[texture(1)]],
-								uint2                     		gid [[thread_position_in_grid]])
+kernel	void 	trace_brdf_d(	device struct		s_scn		*scene	[[buffer(0)]],
+								texture2d<float,access::write>	out		[[texture(1)]],
+								uint2                     		gid		[[thread_position_in_grid]])
 {
-	t_rat	ray;
-	t_scene s;
+	Ray		ray;
 	float4	color;
-	t_color	buf;
-
-	ray = project_get_ray_from_coords(scene.camera, git.x, git.y);
-	buf = rt_trace_brdf_d(scene, ray);
-	color = (float4){buf.r, buf.g, buf.g, buf.a};
-	out.write(color, git);
+	device struct s_cam *cam = &scene->cameras[0];
+	uint2 size = uint2(out.get_width(), out.get_height());
+	float2 ls = map2(float2(gid.x, gid.y), float4(float2(0.0f, (float)size.x), float2(0.0f, (float)size.y)), float4(float2(-1 * (float)size.x / 2, (float)size.x / 2), float2(-1 * (float)size.y / 2, (float)size.y / 2)));
+	ray = Ray(cam->pos, normalize(float3(ls.x, ls.y, 1000.0)));
+	//	ray = rt_camera_get_ray(cam, size, gid);
+	color = rt_trace_brdf_d(scene, ray);
+	out.write(color, gid);
 }
