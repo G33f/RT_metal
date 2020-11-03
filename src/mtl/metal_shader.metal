@@ -138,7 +138,7 @@ float3	fresnel_schlick(float3 f0, float cos_theta)
 
 	cos_theta = 1.0 - num_clamp(cos_theta, 0.0, 1.0);
 	cos_theta = cos_theta * cos_theta * cos_theta * cos_theta * cos_theta;
-	res = (float3(1.0, 1.0, 1.0)- f0) * cos_theta;
+	res = (float3(1.0) - f0) * cos_theta;
 	res = f0 + res;
 	return (res);
 }
@@ -398,7 +398,7 @@ float		brdf_get_d(float3 n, float3 v, float3 l, device struct s_mat *mat)
 //	if (!mat)
 //		return (INFINITY);
 	h = normalize(v + l);
-	roug_sqr = sqrt(mat->roughness);
+	roug_sqr = pow(mat->roughness, 2);
 	d = ggx_distribution(dot(n, h), roug_sqr);
 	return (d);
 }
@@ -410,7 +410,7 @@ float		brdf_get_g(float3 n, float3 v, float3 l, device struct s_mat *mat)
 
 //	if (!mat)
 //		return (INFINITY);
-	roug_sqr = sqrt(mat->roughness);
+	roug_sqr = pow(mat->roughness, 2);
 	g = ggx_partial_geometry(dot(n, v), roug_sqr);
 	g = g * ggx_partial_geometry(dot(n, l), roug_sqr);
 	return (g);
@@ -567,32 +567,4 @@ Ray rt_camera_get_ray(device struct s_cam *cam, uint2 viewport, uint2 pixel)
 	float3 dest = rerp2(p, float3(cam->forward), float3(cam->up), float3(cam->right));
 	Ray ray = Ray(float3(cam->pos), dest);
 	return ray;
-}
-
-t_m		material_apply_parameters(device t_m *mat)
-{
-	float		tmp_f0;
-	t_m			m;
-
-	m = *mat;
-	tmp_f0 = pow((1 - m.ior) / (1 + m.ior), 2);
-	if (mat->metalness)
-	{
-		m.f0 = m.albedo;
-		m.albedo = packed_float3(0);
-	}
-	else
-	{
-		m.f0 = packed_float3(tmp_f0);
-	}
-	return(m);
-}
-
-void material_check(device t_scn *scene)
-{
-	int i;
-
-	i = -1;
-	while (++i < scene->mat_num)
-		scene->materials[i] = material_apply_parameters(&scene->materials[i]);
 }

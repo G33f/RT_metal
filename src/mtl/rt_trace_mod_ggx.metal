@@ -28,10 +28,10 @@ float3			cook_torrance_ggx(float3 n, float3 l, float3 v, device t_m *m)
 	n_dot_l = dot(n, l);
 	if (n_dot_l <= 0 || n_dot_v <= 0)
 		return (float3(0));
-	g = ggx_partial_geometry(n_dot_v, sqrt(m->roughness));
-	g = g * ggx_partial_geometry(n_dot_l, sqrt(m->roughness));
+	g = ggx_partial_geometry(n_dot_v, pow(m->roughness, 2));
+	g = g * ggx_partial_geometry(n_dot_l, pow(m->roughness, 2));
 	f_diffk = fresnel_schlick(m->f0, dot(normalize(v + l), v));
-	speck = f_diffk * (g * ggx_distribution(dot(n, normalize(v + l)), sqrt(m->roughness)) * 0.25 / (n_dot_v + 0.001));
+	speck = f_diffk * (g * ggx_distribution(dot(n, normalize(v + l)), pow(m->roughness, 2)) * 0.25 / (n_dot_v + 0.001));
 	f_diffk = vec_clamp((float3(1.0) - f_diffk), 0.0, 1.0);
 	f_diffk = m->albedo * f_diffk;
 	f_diffk = f_diffk * (n_dot_l / pi);
@@ -57,17 +57,15 @@ static float3	rt_trace_mode_ggx_loop(t_ggx_loop info, device t_scn *scene, threa
 	rt_trace_nearest_dist(scene, Ray(info.normal.pos, to_light), dist_to_shadow, nearest);
 	if (dist_to_shadow > 0.00000001)
 	{
-		if ((dist_to_shadow - 0.001) * dist_to_shadow < dist_to_light)
+		if (dist_to_shadow < dist_to_light)
 		{
 			return (float3(0.0));
 		}
 	}
-	dist_to_light = length(to_light) + 1;
-
+//	dist_to_light = length(to_light) + 1;
 	to_view = float3(info.cam_ray.dir) * -1;
-	light_amount = scene->lights[info.light_id].power / (dist_to_light * dist_to_light) + 1;
-	return (cook_torrance_ggx(info.normal.dir, to_light, to_view,
-		&scene->materials[find_material_by_id(info.mat_id, scene->materials ,scene->mat_num)]) * light_amount);
+	light_amount = scene->lights[info.light_id].power / (dist_to_light * dist_to_light + 1);
+	return (cook_torrance_ggx(info.normal.dir, to_light, to_view, &scene->materials[find_material_by_id(info.mat_id, scene->materials ,scene->mat_num)]) * light_amount);
 }
 
 t_color			rt_trace_mode_ggx(device t_scn *scene, Ray cam_ray)
