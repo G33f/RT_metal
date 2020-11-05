@@ -84,6 +84,15 @@ int			rtc_scn_init(t_scn **scn_ptr, t_idm *idm)
 	scene->objects[4].obj.plane.normal = (t_vec3){0, -1, 0};
 	scene->objects[4].obj.plane.d = 10;
 
+	scene->objects[5].id = 15;
+	scene->objects[5].type = TORUS;
+	scene->objects[5].material_id = 0;
+	scene->objects[5].obj.torus.center = (t_vec3){1, 1, 30};
+	scene->objects[5].obj.torus.ins_vec = (t_vec3){1, 0, 0};
+	scene->objects[5].obj.torus.r = 1.0f;
+	scene->objects[5].obj.torus.R = 5.0f;
+
+
 
 //	scene->objects[2].id = 14;
 //	scene->objects[2].type = PLANE;
@@ -91,7 +100,7 @@ int			rtc_scn_init(t_scn **scn_ptr, t_idm *idm)
 //	scene->objects[2].obj.plane.normal = (t_vec3){0.0, 1.0, 0.0};
 //	scene->objects[2].obj.plane.d = 5;
 
-	scene->objects_num = 6;
+	scene->objects_num = 7;
 
 
 	scene->cameras[0].id = 7;

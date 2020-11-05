@@ -81,7 +81,7 @@ static t_color			rt_trace_mode_ggx(device t_scn *scene, thread struct s_obj &nea
 	if (dist == INFINITY)
 		return (float4(0));
 	normal.pos = cam_ray.pos + cam_ray.dir * dist;
-	normal.dir = trace_normal_fig(cam_ray, &scene->objects[i]);
+	normal.dir = trace_normal_fig(cam_ray, &scene->objects[i], dist);
 	res = float3(0.0f);
 	i = 0;
 	while (i < scene->light_num)
@@ -95,6 +95,8 @@ static t_color			rt_trace_mode_ggx(device t_scn *scene, thread struct s_obj &nea
 //	return (col_from_vec_norm(res));
 	return (col_from_vec_norm(vec_to_srgb(res)));
 }
+
+static void 	sampling()
 
 kernel	void 	trace_mod_ggx(	device struct		s_scn		*scene	[[buffer(0)]],
 								texture2d<float,access::write>	out		[[texture(1)]],

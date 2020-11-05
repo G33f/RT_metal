@@ -13,33 +13,43 @@
 #include <metal_stdlib>
 using namespace metal;
 
-/*
-double mabs(double x){ return (x < 0)? -x : x; }
+//float mabs(float x){ return (x < 0)? -x : x; }
+//
+//float roott(float num, int rootDegree) {
+//	float eps = 0.01;
+//	float root = num / rootDegree;
+//	float rn = num;
+//	while(mabs(root - rn) >= eps)
+//	{
+//		rn = num;
+//		for (int i = 1; i < rootDegree; i++)
+//		{
+//			rn = rn / root;
+//		}
+//		root = 0.5 * (rn + root);
+//	}
+//	return (root);
+//}
 
-float root(float num, int rootDegree) {
-	float eps = 0.01;
-	float root = num / rootDegree;
-	float rn = num;
-	while(mabs(root - rn) >= eps)
-	{
-		rn = num;
-		for (int i = 1; i < rootDegree; i++)
-		{
-			rn = rn / root;
-		}
-		root = 0.5 * (rn + root);
-	}
-	return (root);
-}
-
-typedef struct			s_torus
-{
-	packed_float3		center;
-	packed_float3		ins_vec;
-	float 				R;
-	float				r;
-}						t_torus;
-*/
+//float 		root(float num)
+//{
+//	float	r;
+//	float	q;
+//	int		i;
+//
+//	q = 0;
+//	r = 1;
+//	i = 0;
+//	if (num == 0.0)
+//		return 0;
+//	for (int i = 0; i < 15; i++)
+//	{
+//		q = 1 / pow(10.0, i);
+//		while (((r+q) * (r+q) * (r+q)) < num)
+//			r += q;
+//	}
+//	return r;
+//}
 
 int	find_material_by_id( int id, device struct s_mat *array, int len)
 {
@@ -190,7 +200,7 @@ float					trace_dot_plane(Ray ray, device t_obj *fig)
 	pl[0] = fig->obj.plane;
 //	ray.dir = normalize(ray.dir);
 	d_dot_v = dot(ray.dir, float3(pl->normal));
-	return (-1 * dot((ray.pos - (float3(pl->normal) * (-1.0 * pl->d))), (float3)pl->normal) / d_dot_v);
+	return (-1 * dot((ray.pos - (float3(pl->normal) * (-1.0 * pl->d))), float3(pl->normal)) / d_dot_v);
 }
 
 float					trace_dot_pl(Ray ray, t_plane pl)
@@ -380,22 +390,27 @@ float					trace_dot_cylinder(Ray ray, device t_obj *fig)
 	return (minimal);
 }
 
-/*float4		fourth_degree_equation(float a, float b, float c, float d, float e)
+float4		fourth_degree_equation(float a, float b, float c, float d, float e)
 {
 	float4	res;
 	float 	p;
 	float 	q;
 	float 	S;
 	float 	Q;
+	float 	delta;
 	float 	delta0;
 	float	delta1;
 
-	p = (8 * a * c - 3 * b * b) / 8 * a * a;
-	q = (b * b * b - 4 * a * b * c + 8 * a * a * d) / 8 * a * a * a;
+	delta =	256 * pow(a, 3) * pow(e, 3) - 192 * pow(a, 2) * b * d * pow(e, 2) - 128 * pow(a, 2) * pow(c, 2) * pow(e, 2) + 144 * pow(a, 2) * c * pow(d, 2) * e - 27 * pow(a, 2) * pow(d, 4) +
+		144 * a * pow(b, 2) * c * pow(e, 2) - 80 * a * b * pow(c, 2) * d * e + 18 * a * b * c * pow(d, 3) + 16 * a * pow(c, 4) * e - 4 * a * pow(c, 3) * pow(d, 2) - 27 * pow(b, 4) * pow(e, 2) +
+		18 * pow(b, 3) * c * d * e - 4 * pow(b, 3) * pow(d, 3) - 4 * pow(b, 2) * pow(c, 3) * e + pow(b, 2) * pow(c, 2) + pow(d, 2);
+	p = (8 * a * c - 3 * b * b) / (8 * a * a);
+	q = (b * b * b - 4 * a * b * c + 8 * a * a * d) / (8 * a * a * a);
 	delta0 = c * c - 3 * b * d + 12 * a * e;
 	delta1 = 2 * c * c * c - 9 * b * c * d + 27 * b * b * e + 27 * a * d * d - 72 * a * c * e;
-	Q = root((delta1 + sqrt(pow(delta1, 2) - 4 * pow(delta0, 3))) / 2 ,3);
-	S = 1 / 2 * sqrt(-1 * (2/3 * p) + 1 ? 3 * a * (Q + delta0 / Q));
+	Q = pow(((delta1 + sqrt(pow(delta1, 2) - 4 * pow(delta0, 3))) / 2), 1.3);
+//	Q = pow(((delta1 + sqrt(-27 * delta)) / 2), 1.3);
+	S = 1 / 2 * sqrt(-1 * (2/3 * p) + 1 / (3 * a) * (Q + delta0 / Q));
 	res.x = (-b / 4 * a) - S + (0.5 * sqrt(-4 * pow(S, 2) - 2 * p + q / S));
 	res.y = (-b / 4 * a) - S - (0.5 * sqrt(-4 * pow(S, 2) - 2 * p + q / S));
 	res.z = (-b / 4 * a) + S + (0.5 * sqrt(-4 * pow(S, 2) - 2 * p + q / S));
@@ -403,28 +418,28 @@ float					trace_dot_cylinder(Ray ray, device t_obj *fig)
 	return (res);
 }
 
-float4		finding_the_multipliers(Ray ray, struct s_torus torus, float3 x)
+float4		finding_the_multipliers(Ray ray, device t_obj *fig, float3 x)
 {
 	float	m = dot(ray.dir, ray.dir);
 	float	n = dot(ray.dir, x);
 	float	o = dot(x, x);
-	float	p = dot(ray.dir, float3(torus.ins_vec));
-	float	q = dot(x, float3(torus.ins_vec));
+	float	p = dot(ray.dir, float3(fig->obj.torus.ins_vec));
+	float	q = dot(x, float3(fig->obj.torus.ins_vec));
 	float 	a = pow(m, 2);
 	float	b = 4 * m * n;
-	float 	c = 4 * pow(m, 2) + 2 *m * o - 2 * (pow(torus.R, 2) + pow(torus.r, 2)) * m + 4 * pow(torus.r, 2) * pow(p, 2);
-	float	d = 4 * n * o - 4 * (pow(torus.R, 2) + pow(torus.r, 2)) * n + 8 * pow(torus.R, 2) * p * q;
-	float	e = pow(o, 2) - 2 * (pow(torus.R, 2) + pow(torus.r, 2)) * o + 4 * pow(torus.R, 2) * pow(q, 2) + pow(pow(torus.R, 2) + pow(torus.r, 2), 2);
+	float 	c = 4 * pow(m, 2) + 2 *m * o - 2 * (pow(fig->obj.torus.R, 2) + pow(fig->obj.torus.r, 2)) * m + 4 * pow(fig->obj.torus.r, 2) * pow(p, 2);
+	float	d = 4 * n * o - 4 * (pow(fig->obj.torus.R, 2) + pow(fig->obj.torus.r, 2)) * n + 8 * pow(fig->obj.torus.R, 2) * p * q;
+	float	e = pow(o, 2) - 2 * (pow(fig->obj.torus.R, 2) + pow(fig->obj.torus.r, 2)) * o + 4 * pow(fig->obj.torus.R, 2) * pow(q, 2) + pow(pow(fig->obj.torus.R, 2) + pow(fig->obj.torus.r, 2), 2);
 	return (fourth_degree_equation(a, b, c, d, e));
 }
 
-float 		trace_dot_torus(Ray ray, struct s_torus torus)
+float 		trace_dot_torus(Ray ray, device t_obj *fig)
 {
 	float3	x;
 	float4	points;
 
-	x = ray.pos - float3(torus.center);
-	points = finding_the_multipliers(ray, torus, x);
+	x = ray.pos - float3(fig->obj.torus.center);
+	points = finding_the_multipliers(ray, fig, x);
 	float minimal = INFINITY;
 	if (points.x > 0 && points.x < minimal)
 		minimal = points.x;
@@ -435,7 +450,7 @@ float 		trace_dot_torus(Ray ray, struct s_torus torus)
 	if (points.w > 0 && points.w < minimal)
 		minimal = points.w;
 	return (minimal);
-}*/
+}
 
 ///figur trace-------------------------------------------------
 
@@ -451,6 +466,8 @@ float					trace_dot_fig(Ray ray, device t_obj *fig)
 		return (trace_dot_cone(ray, fig));
 	else if (fig->type == CYLINDER)
 		return (trace_dot_cylinder(ray, fig));
+	else if (fig->type == TORUS)
+		return (trace_dot_torus(ray, fig));
 	else
 		return (INFINITY);
 }
@@ -607,7 +624,7 @@ float3				trace_normal_cylinder(Ray ray, device t_obj *fig)
 	return (cylinder_side_nrm(p, float3(fig->obj.cylinder.tail), v, m.x));
 }
 
-/*float3		trace_normal_torus(Ray ray, struct s_torus *torus, float dist)
+float3		trace_normal_torus(Ray ray, device t_obj *fig, float dist)
 {
 	float3	a;
 	float3	n;
@@ -616,14 +633,14 @@ float3				trace_normal_cylinder(Ray ray, device t_obj *fig)
 	float	k;
 
 	p = dist * (ray.pos + ray.dir);
-	k = dot(p - float3(torus->center), float3(torus->ins_vec));
-	a = p - float3(torus->ins_vec) * k;
-	m = sqrt(pow(torus->r, 2) - pow(k, 2));
-	n = p - a - (float3(torus->center) - a) * m / (torus->R + m);
+	k = dot(p - float3(fig->obj.torus.center), float3(fig->obj.torus.ins_vec));
+	a = p - float3(fig->obj.torus.ins_vec) * k;
+	m = sqrt(pow(fig->obj.torus.r, 2) - pow(k, 2));
+	n = p - a - (float3(fig->obj.torus.center) - a) * m / (fig->obj.torus.R + m);
 	return (normalize(n));
-}*/
+}
 
-float3		trace_normal_fig(Ray ray, device t_obj *fig)
+float3		trace_normal_fig(Ray ray, device t_obj *fig, float dist)
 {
 	if (!fig)
 		return (float3(INFINITY));
@@ -635,6 +652,8 @@ float3		trace_normal_fig(Ray ray, device t_obj *fig)
 		return (trace_normal_cone(ray, fig));
 	else if (fig->type == CYLINDER)
 		return (trace_normal_cylinder(ray, fig));
+	else if (fig->type == TORUS)
+		return (trace_normal_torus(ray, fig, dist));
 	else
 		return (float3(INFINITY));
 }

@@ -22,6 +22,7 @@ typedef enum		e_shape_type
 	SPHERE,
 	PLANE,
 	CYLINDER,
+	TORUS
 }					t_shape_type;
 
 typedef struct		s_mat
@@ -61,12 +62,21 @@ struct		s_cylinder
 	float			r;
 };
 
+struct		s_torus
+{
+	t_vec3			center;
+	t_vec3			ins_vec;
+	float 			R;
+	float			r;
+};
+
 typedef union			u_shape
 {
 	struct s_sphere		sphere;
 	struct s_cone		cone;
 	struct s_plane		plane;
 	struct s_cylinder	cylinder;
+	struct s_torus		torus;
 }						t_shape;
 
 typedef struct			s_obj

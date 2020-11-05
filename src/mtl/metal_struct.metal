@@ -20,7 +20,8 @@ typedef enum			e_shape_type
 	CONE,
 	SPHERE,
 	PLANE,
-	CYLINDER
+	CYLINDER,
+	TORUS
 }						t_shape_type;
 
 typedef enum			e_camera_projection
@@ -78,12 +79,22 @@ typedef struct			s_cylinder
 	float				r;
 }						t_cylinder;
 
+
+typedef struct			s_torus
+{
+	packed_float3		center;
+	packed_float3		ins_vec;
+	float 				R;
+	float				r;
+}						t_torus;
+
 typedef union			u_shape
 {
 	struct s_sphere		sphere;
 	struct s_cone		cone;
 	struct s_plane		plane;
 	struct s_cylinder	cylinder;
+	struct s_torus		torus;
 }						t_shape;
 
 typedef struct			s_obj
