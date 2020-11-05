@@ -96,7 +96,7 @@ static t_color			rt_trace_mode_ggx(device t_scn *scene, thread struct s_obj &nea
 	return (col_from_vec_norm(vec_to_srgb(res)));
 }
 
-static void 	sampling()
+//static void 	sampling()
 
 kernel	void 	trace_mod_ggx(	device struct		s_scn		*scene	[[buffer(0)]],
 								texture2d<float,access::write>	out		[[texture(1)]],
