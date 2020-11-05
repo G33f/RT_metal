@@ -74,15 +74,15 @@ int			rtc_scn_init(t_scn **scn_ptr, t_idm *idm)
 	scene->objects[3].id = 11;
 	scene->objects[3].type = CYLINDER;
 	scene->objects[3].material_id = 0;
-	scene->objects[3].obj.cylinder.head = (t_vec3){-5, 4, 40};
+	scene->objects[3].obj.cylinder.head = (t_vec3){-10, 4, 50};
 	scene->objects[3].obj.cylinder.tail = (t_vec3){-10, 4, 40};
 	scene->objects[3].obj.cylinder.r = (t_num){2.5};
 
 	scene->objects[4].id = 14;
 	scene->objects[4].type = PLANE;
-	scene->objects[4].material_id = 1;
+	scene->objects[4].material_id = 0;
 	scene->objects[4].obj.plane.normal = (t_vec3){0, -1, 0};
-	scene->objects[4].obj.plane.d = 200;
+	scene->objects[4].obj.plane.d = 10;
 
 
 //	scene->objects[2].id = 14;
@@ -104,16 +104,16 @@ int			rtc_scn_init(t_scn **scn_ptr, t_idm *idm)
 	scene->cameras_num = 1;
 
 	scene->materials[0].id = 0;
-	scene->materials[0].metalness = 1;
-	scene->materials[0].roughness = 0.2f;
+	scene->materials[0].metalness = 0;
+	scene->materials[0].roughness = 1.0f;
 	scene->materials[0].ior = 1.6f;
 	scene->materials[0].transparency = 0.0f;
-	scene->materials[0].albedo = (t_vec3){0.8, 0.5, 0.5};
+	scene->materials[0].albedo = (t_vec3){1.0, 1.0, 1.0};
 	scene->materials[0].f0 = (t_vec3){0.0, 0.0, 0.0};
 
 	scene->materials[1].id = 1;
 	scene->materials[1].metalness = 0;
-	scene->materials[1].roughness = 0.7f;
+	scene->materials[1].roughness = 0.0f;
 	scene->materials[1].ior = 1.2f;
 	scene->materials[1].transparency = 0.0f;
 	scene->materials[1].albedo = (t_vec3){0.73, 0.93, 0.0};

@@ -13,6 +13,34 @@
 #include <metal_stdlib>
 using namespace metal;
 
+/*
+double mabs(double x){ return (x < 0)? -x : x; }
+
+float root(float num, int rootDegree) {
+	float eps = 0.01;
+	float root = num / rootDegree;
+	float rn = num;
+	while(mabs(root - rn) >= eps)
+	{
+		rn = num;
+		for (int i = 1; i < rootDegree; i++)
+		{
+			rn = rn / root;
+		}
+		root = 0.5 * (rn + root);
+	}
+	return (root);
+}
+
+typedef struct			s_torus
+{
+	packed_float3		center;
+	packed_float3		ins_vec;
+	float 				R;
+	float				r;
+}						t_torus;
+*/
+
 int	find_material_by_id( int id, device struct s_mat *array, int len)
 {
 	for (int i = 0; i < len; i++)
@@ -56,6 +84,15 @@ float3			vec_clamp(float3 source, float min, float max)
 	source.x = num_clamp(source.x, min, max);
 	source.y = num_clamp(source.y, min, max);
 	source.z = num_clamp(source.z, min, max);
+	return (source);
+}
+
+float4			color_clamp(float4 source, float min, float max)
+{
+	source.x = num_clamp(source.x, min, max);
+	source.y = num_clamp(source.y, min, max);
+	source.z = num_clamp(source.z, min, max);
+	source.w = num_clamp(source.w, min, max);
 	return (source);
 }
 
@@ -309,8 +346,11 @@ static float3			cylinder_capped(Ray ray, struct s_cylinder cyl)
 	x_dot_v = dot((ray.pos - float3(cyl.tail)), v);
 	m.x = dot(ray.dir, (v * points.x)) + x_dot_v;
 	m.y = dot(ray.dir, (v * points.y)) + x_dot_v;
-	if (m.x >= 0 && m.x <= maxm && m.y >= 0 && m.y <= maxm)
-		return (points);
+	if (points.x != INFINITY)
+	{
+		if (m.x >= 0 && m.x <= maxm && m.y >= 0 && m.y <= maxm)
+			return (points);
+	}
 	if ((m.x < 0 && m.y < 0) || (m.x > maxm && m.y > maxm))
 		return (float3(INFINITY));
 	if (m.x < 0)
@@ -339,6 +379,63 @@ float					trace_dot_cylinder(Ray ray, device t_obj *fig)
 		minimal = points.y;
 	return (minimal);
 }
+
+/*float4		fourth_degree_equation(float a, float b, float c, float d, float e)
+{
+	float4	res;
+	float 	p;
+	float 	q;
+	float 	S;
+	float 	Q;
+	float 	delta0;
+	float	delta1;
+
+	p = (8 * a * c - 3 * b * b) / 8 * a * a;
+	q = (b * b * b - 4 * a * b * c + 8 * a * a * d) / 8 * a * a * a;
+	delta0 = c * c - 3 * b * d + 12 * a * e;
+	delta1 = 2 * c * c * c - 9 * b * c * d + 27 * b * b * e + 27 * a * d * d - 72 * a * c * e;
+	Q = root((delta1 + sqrt(pow(delta1, 2) - 4 * pow(delta0, 3))) / 2 ,3);
+	S = 1 / 2 * sqrt(-1 * (2/3 * p) + 1 ? 3 * a * (Q + delta0 / Q));
+	res.x = (-b / 4 * a) - S + (0.5 * sqrt(-4 * pow(S, 2) - 2 * p + q / S));
+	res.y = (-b / 4 * a) - S - (0.5 * sqrt(-4 * pow(S, 2) - 2 * p + q / S));
+	res.z = (-b / 4 * a) + S + (0.5 * sqrt(-4 * pow(S, 2) - 2 * p + q / S));
+	res.w = (-b / 4 * a) + S - (0.5 * sqrt(-4 * pow(S, 2) - 2 * p + q / S));
+	return (res);
+}
+
+float4		finding_the_multipliers(Ray ray, struct s_torus torus, float3 x)
+{
+	float	m = dot(ray.dir, ray.dir);
+	float	n = dot(ray.dir, x);
+	float	o = dot(x, x);
+	float	p = dot(ray.dir, float3(torus.ins_vec));
+	float	q = dot(x, float3(torus.ins_vec));
+	float 	a = pow(m, 2);
+	float	b = 4 * m * n;
+	float 	c = 4 * pow(m, 2) + 2 *m * o - 2 * (pow(torus.R, 2) + pow(torus.r, 2)) * m + 4 * pow(torus.r, 2) * pow(p, 2);
+	float	d = 4 * n * o - 4 * (pow(torus.R, 2) + pow(torus.r, 2)) * n + 8 * pow(torus.R, 2) * p * q;
+	float	e = pow(o, 2) - 2 * (pow(torus.R, 2) + pow(torus.r, 2)) * o + 4 * pow(torus.R, 2) * pow(q, 2) + pow(pow(torus.R, 2) + pow(torus.r, 2), 2);
+	return (fourth_degree_equation(a, b, c, d, e));
+}
+
+float 		trace_dot_torus(Ray ray, struct s_torus torus)
+{
+	float3	x;
+	float4	points;
+
+	x = ray.pos - float3(torus.center);
+	points = finding_the_multipliers(ray, torus, x);
+	float minimal = INFINITY;
+	if (points.x > 0 && points.x < minimal)
+		minimal = points.x;
+	if (points.y > 0 && points.y < minimal)
+		minimal = points.y;
+	if (points.z > 0 && points.z < minimal)
+		minimal = points.z;
+	if (points.w > 0 && points.w < minimal)
+		minimal = points.w;
+	return (minimal);
+}*/
 
 ///figur trace-------------------------------------------------
 
@@ -510,6 +607,22 @@ float3				trace_normal_cylinder(Ray ray, device t_obj *fig)
 	return (cylinder_side_nrm(p, float3(fig->obj.cylinder.tail), v, m.x));
 }
 
+/*float3		trace_normal_torus(Ray ray, struct s_torus *torus, float dist)
+{
+	float3	a;
+	float3	n;
+	float3	p;
+	float	m;
+	float	k;
+
+	p = dist * (ray.pos + ray.dir);
+	k = dot(p - float3(torus->center), float3(torus->ins_vec));
+	a = p - float3(torus->ins_vec) * k;
+	m = sqrt(pow(torus->r, 2) - pow(k, 2));
+	n = p - a - (float3(torus->center) - a) * m / (torus->R + m);
+	return (normalize(n));
+}*/
+
 float3		trace_normal_fig(Ray ray, device t_obj *fig)
 {
 	if (!fig)
@@ -550,6 +663,16 @@ float2		angle2_to_radians(float2 degrees)
 {
 	return (degrees * pi / 180.0f);
 }
+
+float4 colors_mix(float4 c1, float cof1, float4 c2, float cof2)
+{
+	return (color_clamp(c1 * cof1 + c2 * cof2, 0, 1));
+}
+
+//TODO reflections
+
+//void reflections()
+//
 
 Ray rt_camera_get_ray(device struct s_cam *cam, uint2 viewport, uint2 pixel)
 {
