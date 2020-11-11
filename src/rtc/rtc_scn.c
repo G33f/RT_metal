@@ -55,18 +55,27 @@ int			rtc_scn_init(t_scn **scn_ptr, t_idm *idm)
 	scene->objects[0].id = 6;
 	scene->objects[0].type = SPHERE;
 	scene->objects[0].material_id = 0;
+	scene->objects[0].local_x = (t_vec3){1.0, 0.0, 0.0};
+	scene->objects[0].local_y = (t_vec3){0.0, 1.0, 0.0};
+	scene->objects[0].local_z = (t_vec3){0.0, 0.0, 1.0};
 	scene->objects[0].obj.sphere.center = (t_vec3){0.0, 0.0, 100.0};
 	scene->objects[0].obj.sphere.r = (t_num){3.1};
 
 	scene->objects[1].id = 4;
 	scene->objects[1].type = SPHERE;
 	scene->objects[1].material_id = 1;
+	scene->objects[0].local_x = (t_vec3){1.0, 0.0, 0.0};
+	scene->objects[0].local_y = (t_vec3){0.0, 1.0, 0.0};
+	scene->objects[0].local_z = (t_vec3){0.0, 0.0, 1.0};
 	scene->objects[1].obj.sphere.center = (t_vec3){30.0, -15.0, 40.0};
 	scene->objects[1].obj.sphere.r = (t_num){3.9};
 
 	scene->objects[2].id = 8;
 	scene->objects[2].type = CONE;
 	scene->objects[2].material_id = 1;
+	scene->objects[0].local_x = (t_vec3){1.0, 0.0, 0.0};
+	scene->objects[0].local_y = (t_vec3){0.0, 1.0, 0.0};
+	scene->objects[0].local_z = (t_vec3){0.0, 0.0, 1.0};
 	scene->objects[2].obj.cone.head = (t_vec3){5, 10, 40};
 	scene->objects[2].obj.cone.tail = (t_vec3){5, -10, 40};
 	scene->objects[2].obj.cone.r = (t_num){3.2};
@@ -74,6 +83,9 @@ int			rtc_scn_init(t_scn **scn_ptr, t_idm *idm)
 	scene->objects[3].id = 11;
 	scene->objects[3].type = CYLINDER;
 	scene->objects[3].material_id = 0;
+	scene->objects[0].local_x = (t_vec3){1.0, 0.0, 0.0};
+	scene->objects[0].local_y = (t_vec3){0.0, 1.0, 0.0};
+	scene->objects[0].local_z = (t_vec3){0.0, 0.0, 1.0};
 	scene->objects[3].obj.cylinder.head = (t_vec3){-10, 4, 50};
 	scene->objects[3].obj.cylinder.tail = (t_vec3){-10, 4, 40};
 	scene->objects[3].obj.cylinder.r = (t_num){2.5};
@@ -81,12 +93,18 @@ int			rtc_scn_init(t_scn **scn_ptr, t_idm *idm)
 	scene->objects[4].id = 14;
 	scene->objects[4].type = PLANE;
 	scene->objects[4].material_id = 0;
+	scene->objects[0].local_x = (t_vec3){1.0, 0.0, 0.0};
+	scene->objects[0].local_y = (t_vec3){0.0, 1.0, 0.0};
+	scene->objects[0].local_z = (t_vec3){0.0, 0.0, 1.0};
 	scene->objects[4].obj.plane.normal = (t_vec3){0, -1, 0};
 	scene->objects[4].obj.plane.d = 10;
 
 	scene->objects[5].id = 15;
 	scene->objects[5].type = TORUS;
-	scene->objects[5].material_id = 0;
+	scene->objects[5].material_id = 1;
+	scene->objects[0].local_x = (t_vec3){1.0, 0.0, 0.0};
+	scene->objects[0].local_y = (t_vec3){0.0, 1.0, 0.0};
+	scene->objects[0].local_z = (t_vec3){0.0, 0.0, 1.0};
 	scene->objects[5].obj.torus.center = (t_vec3){1, 1, 30};
 	scene->objects[5].obj.torus.ins_vec = (t_vec3){1, 0, 0};
 	scene->objects[5].obj.torus.r = 1.0f;
@@ -100,7 +118,7 @@ int			rtc_scn_init(t_scn **scn_ptr, t_idm *idm)
 //	scene->objects[2].obj.plane.normal = (t_vec3){0.0, 1.0, 0.0};
 //	scene->objects[2].obj.plane.d = 5;
 
-	scene->objects_num = 7;
+	scene->objects_num = 6;
 
 
 	scene->cameras[0].id = 7;

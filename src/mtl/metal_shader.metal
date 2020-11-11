@@ -408,8 +408,8 @@ float4		fourth_degree_equation(float a, float b, float c, float d, float e)
 	q = (b * b * b - 4 * a * b * c + 8 * a * a * d) / (8 * a * a * a);
 	delta0 = c * c - 3 * b * d + 12 * a * e;
 	delta1 = 2 * c * c * c - 9 * b * c * d + 27 * b * b * e + 27 * a * d * d - 72 * a * c * e;
-	Q = pow(((delta1 + sqrt(pow(delta1, 2) - 4 * pow(delta0, 3))) / 2), 1.3);
-//	Q = pow(((delta1 + sqrt(-27 * delta)) / 2), 1.3);
+//	Q = pow(((delta1 + sqrt(pow(delta1, 2) - 4 * pow(delta0, 3))) / 2), 0.33);
+	Q = pow(((delta1 + sqrt(-27 * delta)) / 2), 0.33);
 	S = 1 / 2 * sqrt(-1 * (2/3 * p) + 1 / (3 * a) * (Q + delta0 / Q));
 	res.x = (-b / 4 * a) - S + (0.5 * sqrt(-4 * pow(S, 2) - 2 * p + q / S));
 	res.y = (-b / 4 * a) - S - (0.5 * sqrt(-4 * pow(S, 2) - 2 * p + q / S));
@@ -692,6 +692,24 @@ float4 colors_mix(float4 c1, float cof1, float4 c2, float cof2)
 
 //void reflections()
 //
+
+
+//float3 get_obj_center(device t_obj *fig)
+//{
+//	else if (fig->type == SPHERE)
+//		return (fig->obj.sphere.center);
+//	else if (fig->type == CONE)
+//		return (float3(fig->obj.cone.head) - float3(fig->obj.cone.tail));
+//	else if (fig->type == CYLINDER)
+//		return (float3(fig->obj.cylinder.head) - float3(fig->obj.cylinder.tail));
+//	else if (fig->type == TORUS)
+//		return (fig->obj.torus.center);
+//}
+//
+//float4 get_map_point(/*(pixel_map)*/,device t_scn *scene, float3 point, device t_obj *obj)
+//{
+//
+//}
 
 Ray rt_camera_get_ray(device struct s_cam *cam, uint2 viewport, uint2 pixel)
 {

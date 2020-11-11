@@ -101,6 +101,9 @@ typedef struct			s_obj
 {
 	int 				id;
 	int					material_id;
+	packed_float3		local_x;
+	packed_float3		local_y;
+	packed_float3		local_z;
 	t_shape_type		type;
 	t_shape				obj;
 }						t_obj;
@@ -135,6 +138,7 @@ typedef struct			s_scn
 	int					mat_num;
 	struct s_light		lights[RT_MAX_LIGHTS];
 	int 				light_num;
+	int					sampling_num;
 }						t_scn;
 
 typedef struct			s_ggx_loop

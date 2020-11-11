@@ -83,6 +83,9 @@ typedef struct			s_obj
 {
 	int 				id;
 	int					material_id;
+	t_vec3				local_x;
+	t_vec3				local_y;
+	t_vec3				local_z;
 	t_shape_type 		type;
 	t_shape				obj;
 }						t_obj;

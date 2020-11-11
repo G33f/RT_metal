@@ -56,6 +56,7 @@ typedef struct		s_scn
 	int				materials_num;
 	struct s_light	lights[RT_MAX_LIGHTS];
 	int 			light_num;
+	int				sampling_num;
 }					t_scn;
 
 
