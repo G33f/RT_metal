@@ -72,6 +72,8 @@ typedef struct			s_plane
 	packed_float3		normal;
 }						t_plane;
 
+
+
 typedef struct			s_cylinder
 {
 	packed_float3		head;

@@ -402,15 +402,19 @@ float4		fourth_degree_equation(float a, float b, float c, float d, float e)
 	float	delta1;
 
 	delta =	256 * pow(a, 3) * pow(e, 3) - 192 * pow(a, 2) * b * d * pow(e, 2) - 128 * pow(a, 2) * pow(c, 2) * pow(e, 2) + 144 * pow(a, 2) * c * pow(d, 2) * e - 27 * pow(a, 2) * pow(d, 4) +
-		144 * a * pow(b, 2) * c * pow(e, 2) - 80 * a * b * pow(c, 2) * d * e + 18 * a * b * c * pow(d, 3) + 16 * a * pow(c, 4) * e - 4 * a * pow(c, 3) * pow(d, 2) - 27 * pow(b, 4) * pow(e, 2) +
-		18 * pow(b, 3) * c * d * e - 4 * pow(b, 3) * pow(d, 3) - 4 * pow(b, 2) * pow(c, 3) * e + pow(b, 2) * pow(c, 2) + pow(d, 2);
+		144 * a * pow(b, 2) * c * pow(e, 2) - 6 * a * pow(b, 2) * pow(d, 2) * e - 80 * a * b * pow(c, 2) * d * e + 18 * a * b * c * pow(d, 3) + 16 * a * pow(c, 4) * e -
+		4 * a * pow(c, 3) * pow(d, 2) - 27 * pow(b, 4) * pow(e, 2) + 18 * pow(b, 3) * c * d * e - 4 * pow(b, 3) * pow(d, 3) - 4 * pow(b, 2) * pow(c, 3) * e + pow(b, 2) * pow(c, 2) + pow(d, 2);
 	p = (8 * a * c - 3 * b * b) / (8 * a * a);
 	q = (b * b * b - 4 * a * b * c + 8 * a * a * d) / (8 * a * a * a);
 	delta0 = c * c - 3 * b * d + 12 * a * e;
 	delta1 = 2 * c * c * c - 9 * b * c * d + 27 * b * b * e + 27 * a * d * d - 72 * a * c * e;
-//	Q = pow(((delta1 + sqrt(pow(delta1, 2) - 4 * pow(delta0, 3))) / 2), 0.33);
-	Q = pow(((delta1 + sqrt(-27 * delta)) / 2), 0.33);
-	S = 1 / 2 * sqrt(-1 * (2/3 * p) + 1 / (3 * a) * (Q + delta0 / Q));
+//	Q = pow(((delta1 + sqrt(pow(delta1, 2) - 4 * pow(delta0, 3))) / 2), (1.0 / 3.0));
+	Q = pow(((delta1 + sqrt(-27 * delta)) / 2), (1.0 / 3.0));
+	float fi = acos(delta1 / ( 2 * sqrt(pow(delta0, 2))));
+	if (delta <= 0)
+		S = 1 / 2 * sqrt(-1 * (2/3 * p) + 1 / (3 * a) * (Q + delta0 / Q));
+	else
+		S = 1 / 2 * (sqrt(- 2 / 3 * p + 2 / 3 * a * sqrt(delta0) * cos(fi / 3)));
 	res.x = (-b / 4 * a) - S + (0.5 * sqrt(-4 * pow(S, 2) - 2 * p + q / S));
 	res.y = (-b / 4 * a) - S - (0.5 * sqrt(-4 * pow(S, 2) - 2 * p + q / S));
 	res.z = (-b / 4 * a) + S + (0.5 * sqrt(-4 * pow(S, 2) - 2 * p + q / S));
@@ -427,9 +431,9 @@ float4		finding_the_multipliers(Ray ray, device t_obj *fig, float3 x)
 	float	q = dot(x, float3(fig->obj.torus.ins_vec));
 	float 	a = pow(m, 2);
 	float	b = 4 * m * n;
-	float 	c = 4 * pow(m, 2) + 2 *m * o - 2 * (pow(fig->obj.torus.R, 2) + pow(fig->obj.torus.r, 2)) * m + 4 * pow(fig->obj.torus.r, 2) * pow(p, 2);
+	float 	c = 4 * pow(m, 2) + 2 * m * o - 2 * (pow(fig->obj.torus.R, 2) + pow(fig->obj.torus.r, 2)) * m + 4 * pow(fig->obj.torus.R, 2) * pow(p, 2);
 	float	d = 4 * n * o - 4 * (pow(fig->obj.torus.R, 2) + pow(fig->obj.torus.r, 2)) * n + 8 * pow(fig->obj.torus.R, 2) * p * q;
-	float	e = pow(o, 2) - 2 * (pow(fig->obj.torus.R, 2) + pow(fig->obj.torus.r, 2)) * o + 4 * pow(fig->obj.torus.R, 2) * pow(q, 2) + pow(pow(fig->obj.torus.R, 2) + pow(fig->obj.torus.r, 2), 2);
+	float	e = pow(o, 2) - 2 * (pow(fig->obj.torus.R, 2) + pow(fig->obj.torus.r, 2)) * o + 4 * pow(fig->obj.torus.R, 2) * pow(q, 2) + pow(pow(fig->obj.torus.R, 2) - pow(fig->obj.torus.r, 2), 2);
 	return (fourth_degree_equation(a, b, c, d, e));
 }
 
