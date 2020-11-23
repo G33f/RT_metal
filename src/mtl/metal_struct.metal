@@ -12,6 +12,7 @@ using namespace metal;
 
 constant const float pi = 3.14159265358979323846f;
 
+
 typedef packed_float4	t_color;
 
 typedef enum			e_shape_type
@@ -128,19 +129,24 @@ typedef struct			s_cam
 	packed_float2		fov;
 }						t_cam;
 
-typedef struct			s_scn
+typedef struct			s_info
 {
 	int					id;
-	struct s_obj		objects[RT_MAX_OBJECTS];
 	int					obj_num;
 	struct s_cam		cameras[RT_MAX_CAMERAS];
 	int					cam_num;
 	int					camera_active;
-	struct s_mat		materials[RT_MAX_MATERIALS];
 	int					mat_num;
 	struct s_light		lights[RT_MAX_LIGHTS];
 	int 				light_num;
 	int					sampling_num;
+}						t_info;
+
+typedef struct			s_scn
+{
+	device s_gpu_info	*info;
+	device s_gpu_obj	*obj;
+	device s_mat		*materials;
 }						t_scn;
 
 typedef struct			s_ggx_loop

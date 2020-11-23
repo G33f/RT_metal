@@ -48,12 +48,10 @@ float3	rt_trace_mode_ggx_loop(t_ggx_loop info, device t_scn *scene, thread t_obj
 	float					light_amount;
 
 	nearest = near;
-	if (ray_point_is_behind(info.normal, scene->lights[info.light_id].pos))
+	if (ray_point_is_behind(info.normal, scene.info->lights[info.light_id].pos))
 		return (float3(0));
-	to_light = float3(scene->lights[info.light_id].pos) - info.normal.pos;
-//	to_light = (float3(scene->lights[info.light_id].pos) - info.normal.pos) + (info.normal.pos * 0.000001);
+	to_light = float3(scene.info->lights[info.light_id].pos) - info.normal.pos;
 	dist_to_light = length(to_light);
-//	dist_to_light = length_squared(to_light);
 	dist_to_shadow = 0.0;
 	rt_trace_nearest_dist(scene, Ray(info.normal.pos, to_light), dist_to_shadow, nearest);
 	if (dist_to_shadow > 0.00000001)
@@ -63,15 +61,13 @@ float3	rt_trace_mode_ggx_loop(t_ggx_loop info, device t_scn *scene, thread t_obj
 			return (float3(0.0));
 		}
 	}
-//	dist_to_light = length(to_light) + 1;
 	to_view = float3(info.cam_ray.dir) * -1;
-	light_amount = scene->lights[info.light_id].power / (dist_to_light * dist_to_light + 1);
-	return (cook_torrance_ggx(info.normal.dir, to_light, to_view, &scene->materials[find_material_by_id(info.mat_id, scene->materials ,scene->mat_num)]) * light_amount);
+	light_amount = scene.info->lights[info.light_id].power / (dist_to_light * dist_to_light + 1);
+	return (cook_torrance_ggx(info.normal.dir, to_light, to_view, &scene.materials[find_material_by_id(info.mat_id, scene.materials ,scene.info->mat_num)]) * light_amount);
 }
 
-static t_color			rt_trace_mode_ggx(device t_scn *scene, thread struct s_obj &nearest,thread Ray &cam_ray)
+static t_color			rt_trace_mode_ggx(thread t_scn *scene, thread struct s_obj &nearest,thread Ray &cam_ray)
 {
-//	thread struct s_obj nearest;
 	thread float 		dist;
 	Ray					normal;
 	int					i;
@@ -82,10 +78,10 @@ static t_color			rt_trace_mode_ggx(device t_scn *scene, thread struct s_obj &nea
 	if (dist == INFINITY)
 		return (float4(0));
 	normal.pos = cam_ray.pos + cam_ray.dir * dist;
-	normal.dir = trace_normal_fig(cam_ray, &scene->objects[i], dist);
+	normal.dir = trace_normal_fig(cam_ray, &scene.objects[i], dist);
 	res = float3(0.0f);
 	i = 0;
-	while (i < scene->light_num)
+	while (i < scene.info->light_num)
 	{
 		res = res + rt_trace_mode_ggx_loop((t_ggx_loop){normal, cam_ray, i, nearest.material_id}, scene, nearest);
 		i++;
@@ -93,57 +89,42 @@ static t_color			rt_trace_mode_ggx(device t_scn *scene, thread struct s_obj &nea
 	res = vec_clamp(res, 0, 1);
 	cam_ray.pos = normal.pos + 0.001;
 	cam_ray.dir = normalize(-2 * dot(cam_ray.dir, normal.dir) * normal.dir + cam_ray.dir);
-//	return (col_from_vec_norm(res));
 	return (col_from_vec_norm(vec_to_srgb(res)));
 }
 
-//static float4 	sampling(device t_scn *scene, thread struct s_obj &nearest,thread Ray &cam_ray, float2 ls)
-//{
-//	float4 color = {0};
-//	thread Ray cam_ray;
-//	float i = ls.y;
-//	float j = ls.x;
-//	while (i < ls.y + 1 || length(color) > 0.0)
-//	{
-//		while (j < ls.x + 1 || length(color) > 0.0)
-//		{
-//			cam_ray =
-//			color = rt_trace_mode_ggx(scene, nearest, cam.ray);
-//			j += 1.0 / scene->sampling_num;
-//		}
-//		i += 1.0 / scene->sampling_num;
-//	}
-//	return (color);
-//}
-
-kernel	void 	trace_mod_ggx(	device struct		s_scn		*scene	[[buffer(0)]],
-								texture2d<float,access::write>	out		[[texture(1)]],
-								uint2                     		gid		[[thread_position_in_grid]])
+kernel void trace_mod_ggx(	device struct  s_gpu_info		*info		[[buffer(0)]],
+							device struct  s_obj			*objects	[[buffer(1)]],
+							device struct  s_mat			*materials	[[buffer(2)]],
+							texture2d<float,access::write>	out			[[texture(3)]],
+							uint2							gid			[[thread_position_in_grid]])
 {
-	thread Ray		ray;
-	float4	color = {0};
-	float4	res_color;
-	thread struct s_obj nearest;
-	float 	k = 0.0;
-	device struct s_cam *cam = &scene->cameras[0];
+	thread Ray			ray;
+	float4				color = {0};
+	float4				res_color;
+	float				k;
+	int					id;
+	thread struct s_obj	nearest;
+	device struct s_cam	*cam = &scene->cameras[0];
+	thread struct s_scn scene;
+
+	scene.obj = objects;
+	scene.info = info;
+	scene.materials = materials;
+	k = 0.0;
 	uint2 size = uint2(out.get_width(), out.get_height());
-	float2 ls = map2(float2(gid.x, gid.y), float4(float2(0.0f, (float)size.x), float2(0.0f, (float)size.y)), float4(float2(-1 * (float)size.x / 2, (float)size.x / 2), float2(-1 * (float)size.y / 2, (float)size.y / 2)));
+	float2 ls = map2(float2(gid.x, gid.y), float4(float2(0.0f,
+		(float)size.x), float2(0.0f, (float)size.y)), float4(float2(-1 *
+		(float)size.x / 2, (float)size.x / 2), float2(-1 * (float)size.y / 2,
+		(float)size.y / 2)));
 	ray = Ray(cam->pos, normalize(float3(ls.x, ls.y, 1000.0)));
-	//	material_check(scene);
-	//	ray = rt_camera_get_ray(cam, size, gid);
 	nearest.id = -1;
-//	while (k < 1.0 && sampling(res_color) > 0.0)
-//	{
-//		res_color = rt_trace_mode_ggx(scene, nearest, ray);
-//		color = colors_mix(color, k, res_color, scene->materials[find_material_by_id(nearest.material_id, scene->materials, scene->mat_num)].roughness);
-//		k += scene->materials[find_material_by_id(nearest.material_id, scene->materials, scene->mat_num)].roughness;
-//	}
 	while (k < 1.0 && length(res_color) > 0.0)
 	{
 		res_color = rt_trace_mode_ggx(scene, nearest, ray);
-		color = colors_mix(color, k, res_color, scene->materials[find_material_by_id(nearest.material_id, scene->materials, scene->mat_num)].roughness);
-		k += scene->materials[find_material_by_id(nearest.material_id, scene->materials, scene->mat_num)].roughness;
+		id = find_material_by_id(nearest.material_id, scene.materials, scene.info.mat_num);
+		color = colors_mix(color, k, res_color, scene.materials[id].roughness);
+		k += scene.materials[id].roughness;
 	}
-//	color = rt_trace_mode_ggx(scene, ray);
 	out.write(color, gid);
 }
+

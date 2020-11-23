@@ -200,7 +200,8 @@ float					trace_dot_plane(Ray ray, device t_obj *fig)
 	pl[0] = fig->obj.plane;
 //	ray.dir = normalize(ray.dir);
 	d_dot_v = dot(ray.dir, float3(pl->normal));
-	return (-1 * dot((ray.pos - (float3(pl->normal) * (-1.0 * pl->d))), float3(pl->normal)) / d_dot_v);
+	return (-1 * dot((ray.pos - (float3(pl->normal) * (-1.0 * pl->d))),
+				  float3(pl->normal)) / d_dot_v);
 }
 
 float					trace_dot_pl(Ray ray, t_plane pl)
@@ -209,7 +210,8 @@ float					trace_dot_pl(Ray ray, t_plane pl)
 
 //	ray.dir = normalize(ray.dir);
 	d_dot_v = dot(ray.dir, float3(pl.normal));
-	return (-1 * dot((ray.pos - (float3(pl.normal) * (-1.0 * pl.d))), float3(pl.normal)) / d_dot_v);
+	return (-1 * dot((ray.pos - (float3(pl.normal) * (-1.0 * pl.d))),
+				  float3(pl.normal)) / d_dot_v);
 }
 
 
@@ -390,37 +392,74 @@ float					trace_dot_cylinder(Ray ray, device t_obj *fig)
 	return (minimal);
 }
 
-float4		fourth_degree_equation(float a, float b, float c, float d, float e)
+float4 SolveQuartic(float A, float B, float C, float D, float E)
 {
-	float4	res;
-	float 	p;
-	float 	q;
-	float 	S;
-	float 	Q;
-	float 	delta;
-	float 	delta0;
-	float	delta1;
-
-	delta =	256 * pow(a, 3) * pow(e, 3) - 192 * pow(a, 2) * b * d * pow(e, 2) - 128 * pow(a, 2) * pow(c, 2) * pow(e, 2) + 144 * pow(a, 2) * c * pow(d, 2) * e - 27 * pow(a, 2) * pow(d, 4) +
-		144 * a * pow(b, 2) * c * pow(e, 2) - 6 * a * pow(b, 2) * pow(d, 2) * e - 80 * a * b * pow(c, 2) * d * e + 18 * a * b * c * pow(d, 3) + 16 * a * pow(c, 4) * e -
-		4 * a * pow(c, 3) * pow(d, 2) - 27 * pow(b, 4) * pow(e, 2) + 18 * pow(b, 3) * c * d * e - 4 * pow(b, 3) * pow(d, 3) - 4 * pow(b, 2) * pow(c, 3) * e + pow(b, 2) * pow(c, 2) + pow(d, 2);
-	p = (8 * a * c - 3 * b * b) / (8 * a * a);
-	q = (b * b * b - 4 * a * b * c + 8 * a * a * d) / (8 * a * a * a);
-	delta0 = c * c - 3 * b * d + 12 * a * e;
-	delta1 = 2 * c * c * c - 9 * b * c * d + 27 * b * b * e + 27 * a * d * d - 72 * a * c * e;
-//	Q = pow(((delta1 + sqrt(pow(delta1, 2) - 4 * pow(delta0, 3))) / 2), (1.0 / 3.0));
-	Q = pow(((delta1 + sqrt(-27 * delta)) / 2), (1.0 / 3.0));
-	float fi = acos(delta1 / ( 2 * sqrt(pow(delta0, 2))));
-	if (delta <= 0)
-		S = 1 / 2 * sqrt(-1 * (2/3 * p) + 1 / (3 * a) * (Q + delta0 / Q));
+	float4 res;
+	float alpha = -((3 * pow(B, 2.0f)) / (8 * pow(A, 2.0f))) + (C / A);
+	float beta = (pow(B, 3) / (8 * pow(A, 3))) - ((B * C) / (2 * pow(A, 2))) + (D / A);
+	float gama = -((3 * pow(B, 4)) / (256 * pow(A, 4))) + ((C * pow(B, 2)) / (16 * pow(A, 3))) - ((B * D) / (4 * pow(A, 2))) + (E / A);
+	if (beta == 0.0)
+	{
+		res[0] = -(B / (4 * A)) + sqrt((-alpha + sqrt(pow(alpha, 2) - 4 * gama)) / 2);
+		res[1] = -(B / (4 * A)) + sqrt((-alpha - sqrt(pow(alpha, 2) - 4 * gama)) / 2);
+		res[2] = -(B / (4 * A)) - sqrt((-alpha + sqrt(pow(alpha, 2) - 4 * gama)) / 2);
+		res[3] = -(B / (4 * A)) - sqrt((-alpha - sqrt(pow(alpha, 2) - 4 * gama)) / 2);
+		return (res);
+	}
+	float p = -(pow(alpha, 2) / 12) - gama;
+	float q = -(pow(alpha, 3) / 108) + (alpha * gama / 3) - (pow(beta, 2) / 8);
+	float r = -(q / 2) + (sqrt((pow(q, 2) / 4) + (pow(p, 3) / 27)));
+	float u = pow(r, 1.0f / 3.0f);
+	float y;
+	if (u == 0.0)
+		y = - (5 / 6 * alpha) - pow(q, 1.0f / 3.0f);
 	else
-		S = 1 / 2 * (sqrt(- 2 / 3 * p + 2 / 3 * a * sqrt(delta0) * cos(fi / 3)));
-	res.x = (-b / 4 * a) - S + (0.5 * sqrt(-4 * pow(S, 2) - 2 * p + q / S));
-	res.y = (-b / 4 * a) - S - (0.5 * sqrt(-4 * pow(S, 2) - 2 * p + q / S));
-	res.z = (-b / 4 * a) + S + (0.5 * sqrt(-4 * pow(S, 2) - 2 * p + q / S));
-	res.w = (-b / 4 * a) + S - (0.5 * sqrt(-4 * pow(S, 2) - 2 * p + q / S));
+		y = - (5 / 6 * alpha) + u - (p / (3 * u));
+	float w = sqrt(alpha + 2 * y);
+	res[0] = -(B / 4 * A) + ((w + sqrt(-(3 * alpha + 2 * y + (2 * beta)/w))) / 2);
+	res[1] = -(B / 4 * A) + ((w - sqrt(-(3 * alpha + 2 * y + (2 * beta)/w))) / 2);
+	res[2] = -(B / 4 * A) + (-(w + sqrt(-(3 * alpha + 2 * y - (2 * beta)/w))) / 2);
+	res[3] = -(B / 4 * A) + (-(w - sqrt(-(3 * alpha + 2 * y - (2 * beta)/w))) / 2);
 	return (res);
 }
+
+//float4		fourth_degree_equation(float a, float b, float c, float d, float e)
+//{
+//	float4	res;
+//	float 	p;
+//	float 	q;
+//	float 	S;
+//	float 	Q;
+//	float 	delta;
+//	float 	delta0;
+//	float	delta1;
+//
+//	delta =	256 * pow(a, 3) * pow(e, 3) - 192 * pow(a, 2) * b * d * pow(e, 2) -
+//			128 * pow(a, 2) * pow(c, 2) * pow(e, 2) + 144 * pow(a, 2) * c *
+//			pow(d, 2) * e -	27 * pow(a, 2) * pow(d, 4) + 144 * a * pow(b, 2) *
+//			c * pow(e, 2) - 6 * a * pow(b, 2) *	pow(d, 2) * e - 80 * a * b *
+//			pow(c, 2) * d * e + 18 * a * b * c * pow(d, 3) + 16 * a *
+//			pow(c, 4) * e - 4 * a * pow(c, 3) * pow(d, 2) - 27 * pow(b, 4) *
+//			pow(e, 2) + 18 * pow(b, 3) * c * d * e - 4 * pow(b, 3) *
+//			pow(d, 3) -	4 * pow(b, 2) * pow(c, 3) * e +	pow(b, 2) * pow(c, 2) +
+//			pow(d, 2);
+//	p = (8 * a * c - 3 * b * b) / (8 * a * a);
+//	q = (b * b * b - 4 * a * b * c + 8 * a * a * d) / (8 * a * a * a);
+//	delta0 = c * c - 3 * b * d + 12 * a * e;
+//	delta1 = 2 * c * c * c - 9 * b * c * d + 27 * b * b * e + 27 * a * d * d - 72 * a * c * e;
+//	Q = pow(((delta1 + sqrt(pow(delta1, 2) - 4 * pow(delta0, 3))) / 2), (1.0 / 3.0));
+////	Q = pow(((delta1 + sqrt(-27 * delta)) / 2), (1.0 / 3.0));
+//	float fi = acos(delta1 / ( 2 * sqrt(pow(delta0, 2))));
+//	if (delta <= 0)
+//		S = 1 / 2 * sqrt(-1 * (2/3 * p) + 1 / (3 * a) * (Q + delta0 / Q));
+//	else
+//		S = 1 / 2 * (sqrt(- 2 / 3 * p + 2 / 3 * a * sqrt(delta0) * cos(fi / 3)));
+//	res.x = (-b / 4 * a) - S + (0.5 * sqrt(-4 * pow(S, 2) - 2 * p + q / S));
+//	res.y = (-b / 4 * a) - S - (0.5 * sqrt(-4 * pow(S, 2) - 2 * p + q / S));
+//	res.z = (-b / 4 * a) + S + (0.5 * sqrt(-4 * pow(S, 2) - 2 * p + q / S));
+//	res.w = (-b / 4 * a) + S - (0.5 * sqrt(-4 * pow(S, 2) - 2 * p + q / S));
+//	return (res);
+//}
 
 float4		finding_the_multipliers(Ray ray, device t_obj *fig, float3 x)
 {
@@ -431,10 +470,17 @@ float4		finding_the_multipliers(Ray ray, device t_obj *fig, float3 x)
 	float	q = dot(x, float3(fig->obj.torus.ins_vec));
 	float 	a = pow(m, 2);
 	float	b = 4 * m * n;
-	float 	c = 4 * pow(m, 2) + 2 * m * o - 2 * (pow(fig->obj.torus.R, 2) + pow(fig->obj.torus.r, 2)) * m + 4 * pow(fig->obj.torus.R, 2) * pow(p, 2);
-	float	d = 4 * n * o - 4 * (pow(fig->obj.torus.R, 2) + pow(fig->obj.torus.r, 2)) * n + 8 * pow(fig->obj.torus.R, 2) * p * q;
-	float	e = pow(o, 2) - 2 * (pow(fig->obj.torus.R, 2) + pow(fig->obj.torus.r, 2)) * o + 4 * pow(fig->obj.torus.R, 2) * pow(q, 2) + pow(pow(fig->obj.torus.R, 2) - pow(fig->obj.torus.r, 2), 2);
-	return (fourth_degree_equation(a, b, c, d, e));
+	float 	c = 4 * pow(m, 2) + 2 * m * o - 2 * (pow(fig->obj.torus.R, 2) +
+			pow(fig->obj.torus.r, 2)) * m + 4 * pow(fig->obj.torus.R, 2) *
+			pow(p, 2);
+	float	d = 4 * n * o - 4 * (pow(fig->obj.torus.R, 2) +
+			pow(fig->obj.torus.r, 2)) * n + 8 * pow(fig->obj.torus.R, 2)
+			* p * q;
+	float	e = pow(o, 2) - 2 * (pow(fig->obj.torus.R, 2) +
+			pow(fig->obj.torus.r, 2)) * o + 4 * pow(fig->obj.torus.R, 2) *
+			pow(q, 2) + pow(pow(fig->obj.torus.R, 2) -
+			pow(fig->obj.torus.r, 2), 2);
+	return (SolveQuartic(a, b, c, d, e));
 }
 
 float 		trace_dot_torus(Ray ray, device t_obj *fig)
@@ -476,7 +522,7 @@ float					trace_dot_fig(Ray ray, device t_obj *fig)
 		return (INFINITY);
 }
 
-int			rt_trace_nearest_dist(device t_scn *scene, Ray ray, thread float &dist, thread t_obj &nearest)
+int			rt_trace_nearest_dist(thread t_scn &scene, Ray ray, thread float &dist, thread t_obj &nearest)
 {
 	float				tmp_dist;
 	float				res_dist;
@@ -489,15 +535,15 @@ int			rt_trace_nearest_dist(device t_scn *scene, Ray ray, thread float &dist, th
 		return (0);
 	res_dist = INFINITY;
 	i = 0;
-	while (i < scene->obj_num)
+	while (i < scene.info->obj_num)
 	{
-		if (near.id != scene->objects[i].id)
+		if (near.id != scene.objects[i]->id)
 		{
-			tmp_dist = trace_dot_fig(ray, &(scene->objects[i]));
+			tmp_dist = trace_dot_fig(ray, &(scene.objects[i]));
 			if (tmp_dist < res_dist && tmp_dist > 0)
 			{
 				res_dist = tmp_dist;
-				nearest = scene->objects[i];
+				nearest = scene.objects[i];
 				nearest_num = i;
 			}
 		}
@@ -534,9 +580,9 @@ float		brdf_get_g(float3 n, float3 v, float3 l, device struct s_mat *mat)
 	return (g);
 }
 
-///figur norm-------------------------------------------------
+///figur norm--------------------------------------------------
 
-///plane norm-------------------------------------------------
+///plane norm--------------------------------------------------
 
 float3				trace_normal_plane(Ray ray, device t_obj *fig)
 {
@@ -548,7 +594,7 @@ float3				trace_normal_plane(Ray ray, device t_obj *fig)
 	return (fig->obj.plane.normal);
 }
 
-///sphere norm------------------------------------------------
+///sphere norm-------------------------------------------------
 
 float3				trace_normal_sphere(Ray ray, device t_obj *fig)
 {
@@ -560,7 +606,7 @@ float3				trace_normal_sphere(Ray ray, device t_obj *fig)
 	return (normalize(bounce_pos - float3(fig->obj.sphere.center)));
 }
 
-///cone norm--------------------------------------------------
+///cone norm---------------------------------------------------
 
 float3				trace_normal_cone(Ray ray_in, device t_obj *fig)
 {
@@ -627,6 +673,8 @@ float3				trace_normal_cylinder(Ray ray, device t_obj *fig)
 	p = ray.pos + ray.dir * dis.x;
 	return (cylinder_side_nrm(p, float3(fig->obj.cylinder.tail), v, m.x));
 }
+
+///torus norm--------------------------------------------------
 
 float3		trace_normal_torus(Ray ray, device t_obj *fig, float dist)
 {
