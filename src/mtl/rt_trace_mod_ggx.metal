@@ -66,7 +66,7 @@ float3	rt_trace_mode_ggx_loop(t_ggx_loop info, device t_scn *scene, thread t_obj
 	return (cook_torrance_ggx(info.normal.dir, to_light, to_view, &scene.materials[find_material_by_id(info.mat_id, scene.materials ,scene.info->mat_num)]) * light_amount);
 }
 
-static t_color			rt_trace_mode_ggx(thread t_scn *scene, thread struct s_obj &nearest,thread Ray &cam_ray)
+static t_color			rt_trace_mode_ggx(thread t_scn &scene, thread struct s_obj &nearest,thread Ray &cam_ray)
 {
 	thread float 		dist;
 	Ray					normal;
@@ -104,7 +104,7 @@ kernel void trace_mod_ggx(	device struct  s_gpu_info		*info		[[buffer(0)]],
 	float				k;
 	int					id;
 	thread struct s_obj	nearest;
-	device struct s_cam	*cam = &scene->cameras[0];
+	device struct s_cam	*cam = &info->cameras[0];
 	thread struct s_scn scene;
 
 	scene.obj = objects;
